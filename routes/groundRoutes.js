@@ -1,0 +1,30 @@
+const express = require('express');
+const router = express.Router();
+const { protect } = require('../middlewares/auth');
+const Ground = require('../models/ground');
+
+// GET all grounds
+router.get('/', async (req, res) => {
+  const grounds = await Ground.find();
+  res.json(grounds);
+});
+
+// POST create ground (for admin)
+router.post('/', protect, async (req, res) => {
+  const ground = await Ground.create(req.body);
+  res.status(201).json(ground);
+});
+
+// PUT update ground
+router.put('/:id', protect, async (req, res) => {
+  const updated = await Ground.findByIdAndUpdate(req.params.id, req.body, { new: true });
+  res.json(updated);
+});
+
+// DELETE ground
+router.delete('/:id', protect, async (req, res) => {
+  await Ground.findByIdAndDelete(req.params.id);
+  res.status(204).end();
+});
+
+module.exports = router;
