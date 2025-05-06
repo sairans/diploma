@@ -1,34 +1,63 @@
 const express = require('express');
 const router = express.Router();
 const { protect } = require('../middlewares/auth');
-const { admin } = require('../middlewares/auth');
+const admin = require('../middlewares/admin');
 const Ground = require('../models/ground');
 
-// GET all grounds
+// READ ALL
 router.get('/', async (req, res) => {
-  const query = {};
-  if (req.query.city) query.city = req.query.city;
-  if (req.query.sport) query.sport = req.query.sport;
-  const grounds = await Ground.find(query);
-  res.json(grounds);
+  try {
+    const grounds = await Ground.find();
+    res.json(grounds);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 });
 
-// POST create ground (for admin)
-router.post('/', protect, async (req, res) => {
-  const ground = await Ground.create(req.body);
-  res.status(201).json(ground);
+// CREATE
+router.post('/', protect, admin, async (req, res) => {
+  try {
+    const ground = new Ground(req.body);
+    const savedGround = await ground.save();
+    res.status(201).json(savedGround);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
 });
 
-// PUT update ground
+// READ ONE
+router.get('/:id', async (req, res) => {
+  try {
+    const ground = await Ground.findById(req.params.id);
+    if (!ground) return res.status(404).json({ message: 'Not found' });
+    res.json(ground);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// UPDATE
 router.put('/:id', protect, admin, async (req, res) => {
-  const updated = await Ground.findByIdAndUpdate(req.params.id, req.body, { new: true });
-  res.json(updated);
+  try {
+    const updated = await Ground.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+    });
+    if (!updated) return res.status(404).json({ message: 'Not found' });
+    res.json(updated);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
 });
 
-// DELETE ground
+// DELETE
 router.delete('/:id', protect, admin, async (req, res) => {
-  await Ground.findByIdAndDelete(req.params.id);
-  res.status(204).end();
+  try {
+    const deleted = await Ground.findByIdAndDelete(req.params.id);
+    if (!deleted) return res.status(404).json({ message: 'Not found' });
+    res.json({ message: 'Ground deleted' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 });
 
 module.exports = router;

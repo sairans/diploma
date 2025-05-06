@@ -1,9 +1,9 @@
-const User = require('../models/User');
+const User = require('../models/user');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 exports.registerUser = async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, phone, avatar, isAdmin } = req.body;
 
   try {
     const userExists = await User.findOne({ email });
@@ -16,12 +16,16 @@ exports.registerUser = async (req, res) => {
       name,
       email,
       password: hashedPassword,
+      phone,
+      avatar,
+      isAdmin
     });
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
     res.status(201).json({ token });
   } catch (error) {
+    console.error(error); // helpful for debugging
     res.status(500).json({ message: 'Server error' });
   }
 };
