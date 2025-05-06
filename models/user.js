@@ -1,3 +1,4 @@
+const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
@@ -24,7 +25,7 @@ const userSchema = new mongoose.Schema({
   },
   avatar: {
     type: String,
-    default:  'https://example.com/default-avatar.png.com',
+    default:  'https://example.com/default-avatar.png',
   },
 }, {
   timestamps: true,

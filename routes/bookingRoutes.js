@@ -28,6 +28,10 @@ router.post('/', protect, async (req, res) => {
   if (existing) {
     return res.status(400).json({ message: 'Один или несколько слотов уже забронированы' });
   }
+
+  if (!req.user || !req.user._id) {
+    return res.status(401).json({ message: 'Пользователь не найден или не авторизован' });
+  }
   
   const booking = await Booking.create({
     user: req.user._id,
