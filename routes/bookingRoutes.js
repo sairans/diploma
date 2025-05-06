@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { protect } = require('../middlewares/auth');
 const Booking = require('../models/booking');
+const Ground = require('../models/ground');
 
 // Получить все бронирования текущего пользователя
 router.get('/my', protect, async (req, res) => {
@@ -34,6 +35,7 @@ router.post('/', protect, async (req, res) => {
     date,
     timeSlot
   });
+  res.status(201).json(booking);
 });
 
 // Получить занятые слоты по дате и площадке
@@ -46,7 +48,7 @@ router.get('/occupied', async (req, res) => {
 
   const bookings = await Booking.find({ ground: groundId, date });
 
-  const timeSlots = bookings.map(b => b.timeSlot);
+  const timeSlots = bookings.flatMap(b => b.timeSlot.map(slot => slot.trim()));
   res.json({ occupiedSlots: timeSlots });
 });
 
@@ -58,7 +60,6 @@ router.get('/available', async (req, res) => {
     return res.status(400).json({ message: 'groundId и date обязательны' });
   }
 
-  const Ground = require('../models/ground');
   const ground = await Ground.findById(groundId);
   if (!ground) return res.status(404).json({ message: 'Площадка не найдена' });
 
@@ -79,6 +80,23 @@ router.get('/available', async (req, res) => {
 
   const available = allSlots.filter(slot => !occupied.includes(slot.trim()));
   res.json({ availableSlots: available });
+});
+
+// Получить ближайшие площадки
+router.get('/nearby', async (req, res) => {
+  const { lat, lng } = req.query;
+  if (!lat || !lng) return res.status(400).json({ message: 'Coordinates required' });
+
+  const grounds = await Ground.find({
+    location: {
+      $near: {
+        $geometry: { type: 'Point', coordinates: [parseFloat(lng), parseFloat(lat)] },
+        $maxDistance: 5000 // 5 км радиус
+      }
+    }
+  });
+
+  res.json(grounds);
 });
 
 module.exports = router;
