@@ -4,6 +4,8 @@ const { protect } = require('../middlewares/auth');
 const admin = require('../middlewares/admin');
 const Booking = require('../models/booking');
 const Ground = require('../models/ground');
+const { sendEmail } = require('../utils/emailService');
+const User = require('../models/user');
 
 // Получить все бронирования текущего пользователя
 router.get('/my', protect, async (req, res) => {
@@ -42,6 +44,37 @@ router.post('/', protect, async (req, res) => {
       date,
       timeSlot
     });
+
+    // booking — это уже сохранённый документ (await booking.save())
+    const populatedBooking = await Booking.findById(booking._id)
+      .populate('user', 'name email')
+      .populate('ground', 'name location');
+
+      const { name: userName, email } = populatedBooking.user;
+      const { name: groundName, location } = populatedBooking.ground;
+
+      const html = `
+        <h2>Успешное бронирование</h2>
+        <p><strong>Пользователь:</strong> ${userName}</p>
+        <p><strong>Площадка:</strong> ${groundName}</p>
+        <p><strong>Дата:</strong> ${populatedBooking.date.toDateString()}</p>
+        <p><strong>Время:</strong> ${populatedBooking.timeSlot.join(', ')}</p>
+        <p><strong>Локация:</strong> [${location.coordinates.join(', ')}]</p>
+      `;
+
+      await sendEmail({
+        to: email,
+        subject: 'Подтверждение бронирования',
+        html
+      });
+
+      await sendEmail({
+        to: email,
+        bcc: 'sairanovs10@gmail.com',
+        subject: 'Подтверждение бронирования',
+        html
+      });
+      
     res.status(201).json({ booking });
   } catch (err) {
     res.status(500).json({ message: 'Ошибка при бронировании', error: err.message });
@@ -150,52 +183,19 @@ router.delete('/:id', protect, async (req, res) => {
       return res.status(403).json({ message: 'Нет доступа' });
     }
 
+    const user = await User.findById(booking.user);
+    const ground = await Ground.findById(booking.ground);
+    const date = booking.date.toDateString();
+
     await booking.deleteOne();
+    await sendEmail({
+      to: user.email,
+      subject: 'Бронирование отменено',
+      html: `<p>Вы отменили бронирование площадки ${ground.name} на ${date}</p>`
+    });
     res.json({ message: 'Бронирование удалено' });
   } catch (err) {
     res.status(500).json({ message: 'Ошибка удаления бронирования', error: err.message });
-  }
-});
-
-// POST a new booking
-router.post('/bookings', protect, async (req, res) => {
-  try {
-    const { ground, date, timeSlot } = req.body;
-    const groundExists = await Ground.findById(ground);
-    if (!groundExists) return res.status(404).json({ message: 'Ground not found' });
-
-    const existingBooking = await Booking.findOne({
-      user: req.user._id,
-      ground,
-      date,
-      timeSlot: { $in: timeSlot }
-    });
-
-    if (existingBooking) {
-      return res.status(400).json({ message: 'Slot already booked by this user' });
-    }
-
-    const overlapping = await Booking.findOne({
-      ground,
-      date,
-      timeSlot: { $in: timeSlot }
-    });
-
-    if (overlapping) {
-      return res.status(400).json({ message: 'Slot already taken' });
-    }
-
-    const newBooking = new Booking({
-      user: req.user._id,
-      ground,
-      date,
-      timeSlot
-    });
-
-    const saved = await newBooking.save();
-    res.status(201).json(saved);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
   }
 });
 
@@ -215,9 +215,8 @@ router.get('/bookings', protect, async (req, res) => {
     } else if (endDate) {
       query.date = { $lte: new Date(endDate) };
     }
-
-    const bookings = await Booking.find(query).populate('user ground');
-    res.json(bookings);
+    const bookings = await Booking.find(query).populate('user').populate('ground');
+    res.json({ bookings });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
