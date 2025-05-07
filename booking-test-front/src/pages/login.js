@@ -9,12 +9,13 @@ const Login = () => {
 
   const login = async () => {
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/login', { email, password });
+      const res = await axios.post('http://localhost:5001/api/users/login', { email, password });
       localStorage.setItem('token', res.data.token);
-      navigate('/booking');
+      navigate('/bookings');
     } catch (err) {
-      alert(err.response?.data?.message || 'Login error');
-    }
+        console.error('Login error:', err);
+        alert(err.response?.data?.message || 'Login error');
+      }
   };
 
   return (

@@ -9,8 +9,8 @@ const Register = () => {
 
   const register = async () => {
     try {
-      await axios.post('http://localhost:5000/api/auth/register', { email, password });
-      navigate('/');
+      await axios.post('http://localhost:5001/api/users/register', { email, password });
+      navigate('/bookings');
     } catch (err) {
       alert(err.response?.data?.message || 'Register error');
     }
