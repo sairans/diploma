@@ -15,7 +15,7 @@ const Booking = () => {
 
   const fetchMyBookings = async () => {
     try {
-      const res = await axios.get('/api/bookings/bookings', {
+      const res = await axios.get('/api/bookings/my', {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       setMyBookings(res.data.bookings || []);
