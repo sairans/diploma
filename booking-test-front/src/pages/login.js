@@ -31,7 +31,7 @@ const Login = () => {
         }
       );
       localStorage.setItem("token", res.data.token);
-      navigate("/bookings");
+      navigate("/booking");
     } catch (err) {
       console.error("Login error:", err);
       if (err.message === "Network Error") {

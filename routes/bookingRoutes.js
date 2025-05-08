@@ -67,13 +67,6 @@ router.post('/', protect, async (req, res) => {
         subject: 'Подтверждение бронирования',
         html
       });
-
-      await sendEmail({
-        to: email,
-        bcc: 'sairanovs10@gmail.com',
-        subject: 'Подтверждение бронирования',
-        html
-      });
       
     res.status(201).json({ booking });
   } catch (err) {
@@ -165,6 +158,28 @@ router.put('/:id', protect, async (req, res) => {
     const { date, timeSlot } = req.body;
     if (date) booking.date = date;
     if (timeSlot) booking.timeSlot = timeSlot;
+
+    const user = await User.findById(booking.user);
+    const ground = await Ground.findById(booking.ground);
+    const email = user.email;
+    const userName = user.name;
+    const groundName = ground.name;
+    const location = ground.location;
+
+    const html = `
+        <h2>Успешное изменение бронирования</h2>
+        <p><strong>Пользователь:</strong> ${userName}</p>
+        <p><strong>Площадка:</strong> ${groundName}</p>
+        <p><strong>Дата:</strong> ${booking.date.toDateString()}</p>
+        <p><strong>Время:</strong> ${booking.timeSlot.join(', ')}</p>
+        <p><strong>Локация:</strong> [${location.coordinates.join(', ')}]</p>
+      `;
+
+      await sendEmail({
+        to: email,
+        subject: 'Изменение бронирования',
+        html
+      });
 
     await booking.save();
     res.json({ message: 'Бронирование обновлено', booking });
