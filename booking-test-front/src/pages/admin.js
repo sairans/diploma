@@ -1,5 +1,4 @@
-// src/pages/AdminPanel.js
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import axios from 'axios';
 
 const AdminPanel = () => {
@@ -16,13 +15,13 @@ const AdminPanel = () => {
   });
 
   const token = localStorage.getItem('token');
-  const headers = { headers: { Authorization: `Bearer ${token}` } };
+  const headers = useMemo(() => ({ headers: { Authorization: `Bearer ${token}` } }), [token]);
 
   useEffect(() => {
     axios.get('/api/users', headers).then(res => setUsers(res.data.users || []));
     axios.get('/api/grounds', headers).then(res => setGrounds(res.data.grounds || res.data));
     axios.get('/api/bookings/all', headers).then(res => setBookings(res.data.bookings || res.data));
-  }, []);
+  }, [headers]);
 
   const handleAddGround = async () => {
     const payload = {
