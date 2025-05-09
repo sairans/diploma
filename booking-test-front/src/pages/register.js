@@ -35,7 +35,7 @@ const Register = () => {
           placeholder="Имя"
           value={form.name}
           onChange={handleChange}
-          style={{ width: '100%', padding: '10px', marginBottom: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
+          style={{ width: '93%', padding: '10px', marginBottom: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
         />
         <input
           name="email"
@@ -43,14 +43,14 @@ const Register = () => {
           placeholder="Email"
           value={form.email}
           onChange={handleChange}
-          style={{ width: '100%', padding: '10px', marginBottom: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
+          style={{ width: '93%', padding: '10px', marginBottom: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
         />
         <input
           name="phone"
           placeholder="Телефон"
           value={form.phone}
           onChange={handleChange}
-          style={{ width: '100%', padding: '10px', marginBottom: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
+          style={{ width: '93%', padding: '10px', marginBottom: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
         />
         <input
           name="password"
@@ -58,14 +58,7 @@ const Register = () => {
           placeholder="Пароль"
           value={form.password}
           onChange={handleChange}
-          style={{ width: '100%', padding: '10px', marginBottom: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
-        />
-        <input
-          name="avatar"
-          placeholder="URL аватара (необязательно)"
-          value={form.avatar}
-          onChange={handleChange}
-          style={{ width: '100%', padding: '10px', marginBottom: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
+          style={{ width: '93%', padding: '10px', marginBottom: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
         />
         <button
           onClick={register}

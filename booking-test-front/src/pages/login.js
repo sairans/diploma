@@ -31,13 +31,28 @@ const Login = () => {
         }
       );
       localStorage.setItem("token", res.data.token);
-      navigate("/booking");
+      console.log("Login response:", res.data);
+      const profileRes = await axios.get('/api/users/me', {
+        headers: {
+          Authorization: `Bearer ${res.data.token}`
+        }
+      });
+      console.log('User profile:', profileRes.data);
+      if (profileRes.data.isAdmin) {
+        navigate("/admin");
+      } else {
+        navigate("/booking");
+      }
     } catch (err) {
       console.error("Login error:", err);
+      setLoading(false);
+      setPassword('');
       if (err.message === "Network Error") {
         alert("Cannot connect to server. Check your connection or try later.");
       } else {
-        alert(err.response?.data?.message || "Login failed");
+        const msg = err.response?.data?.message || "Login failed";
+        setError(msg);
+        alert(msg);
       }
     }
   };
@@ -61,7 +76,7 @@ const Login = () => {
           placeholder="Email"
           value={email}
           onChange={e => setEmail(e.target.value)}
-          style={{ width: '100%', padding: '10px', marginBottom: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
+          style={{ width: '93%', padding: '10px', marginBottom: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
           required
         />
         <input
@@ -69,7 +84,7 @@ const Login = () => {
           placeholder="Password"
           value={password}
           onChange={e => setPassword(e.target.value)}
-          style={{ width: '100%', padding: '10px', marginBottom: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
+          style={{ width: '93%', padding: '10px', marginBottom: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
           required
         />
         <button

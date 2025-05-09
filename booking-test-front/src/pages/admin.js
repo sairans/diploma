@@ -21,7 +21,7 @@ const AdminPanel = () => {
   useEffect(() => {
     axios.get('/api/users', headers).then(res => setUsers(res.data.users || []));
     axios.get('/api/grounds', headers).then(res => setGrounds(res.data.grounds || res.data));
-    axios.get('/api/bookings', headers).then(res => setBookings(res.data.bookings || res.data));
+    axios.get('/api/bookings/all', headers).then(res => setBookings(res.data.bookings || res.data));
   }, []);
 
   const handleAddGround = async () => {
