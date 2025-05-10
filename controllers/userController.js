@@ -5,9 +5,19 @@ const jwt = require('jsonwebtoken');
 exports.registerUser = async (req, res) => {
   const { name, email, password, phone, avatar, isAdmin } = req.body;
 
+  if (!email?.trim() || !password?.trim() || !phone?.trim()) {
+    return res.status(400).json({
+      message: 'Email, password, and phone are required and cannot be empty'
+    });
+  }
+
   try {
-    const userExists = await User.findOne({ email });
-    if (userExists) return res.status(400).json({ message: 'User already exists' });
+    const userExists = await User.findOne({
+      $or: [{ email: email }, { phone: phone }]
+    });
+
+    if (userExists)
+      return res.status(400).json({ message: 'User already exists' });
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
@@ -21,7 +31,9 @@ exports.registerUser = async (req, res) => {
       isAdmin
     });
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: '7d'
+    });
 
     res.status(201).json({ token });
   } catch (error) {
@@ -38,9 +50,12 @@ exports.loginUser = async (req, res) => {
     if (!user) return res.status(400).json({ message: 'Invalid credentials' });
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
+    if (!isMatch)
+      return res.status(400).json({ message: 'Invalid credentials' });
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: '7d'
+    });
 
     res.status(200).json({ token });
   } catch (error) {

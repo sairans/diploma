@@ -2,15 +2,15 @@ const express = require('express');
 const router = express.Router();
 const { protect } = require('../middlewares/auth');
 const admin = require('../middlewares/admin');
-const { 
-  createBooking, 
-  updateBooking, 
-  deleteBooking, 
-  getMyBookings, 
-  getAllBookings, 
-  getOccupiedSlots, 
-  getAvailableSlots, 
-  getNearbyGrounds 
+const {
+  createBooking,
+  updateBooking,
+  deleteBooking,
+  getMyBookings,
+  getAllBookings,
+  getOccupiedSlots,
+  getAvailableSlots,
+  getNearbyGrounds
 } = require('../controllers/bookingController');
 
 // Получить все бронирования текущего пользователя
