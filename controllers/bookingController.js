@@ -129,52 +129,44 @@ exports.deleteBooking = async (req, res) => {
 
 // Get occupied time slots for a ground and date
 exports.getOccupiedSlots = async (req, res) => {
-    try {
-      const { ground, date } = req.query;
-      
-      if (!ground || !date) {
-        return res.status(400).json({ message: 'Необходимо указать площадку и дату' });
-      }
-  
-      const bookings = await Booking.find({ 
-        ground, 
-        date: new Date(date)
-      });
-  
-      const occupiedSlots = bookings.flatMap(booking => booking.timeSlot);
-      res.json({ occupiedSlots });
-    } catch (err) {
-      res.status(500).json({ message: 'Ошибка получения занятых слотов', error: err.message });
+  try {
+    const { groundId, date } = req.query;
+    if (!groundId || !date) {
+      return res.status(400).json({ message: 'groundId и date обязательны' });
     }
+    const bookings = await Booking.find({ ground: groundId, date });
+    const timeSlots = bookings.flatMap(b => b.timeSlot.map(slot => slot.trim()));
+    res.json({ occupiedSlots: timeSlots });
+  } catch (err) {
+    res.status(500).json({ message: 'Ошибка получения занятых слотов', error: err.message });
+  }
   };
   
   // Get available time slots for a ground and date
   exports.getAvailableSlots = async (req, res) => {
-    try {
-      const { ground, date } = req.query;
-      
-      if (!ground || !date) {
-        return res.status(400).json({ message: 'Необходимо указать площадку и дату' });
-      }
-  
-      const groundData = await Ground.findById(ground);
-      if (!groundData) {
-        return res.status(404).json({ message: 'Площадка не найдена' });
-      }
-  
-      const bookings = await Booking.find({ 
-        ground, 
-        date: new Date(date)
-      });
-  
-      const occupiedSlots = bookings.flatMap(booking => booking.timeSlot);
-      const allSlots = groundData.workingHours; // Предполагаем, что в модели есть workingHours
-      const availableSlots = allSlots.filter(slot => !occupiedSlots.includes(slot));
-      
-      res.json({ availableSlots });
-    } catch (err) {
-      res.status(500).json({ message: 'Ошибка получения свободных слотов', error: err.message });
+  try {
+    const { groundId, date } = req.query;
+    if (!groundId || !date) {
+      return res.status(400).json({ message: 'groundId и date обязательны' });
     }
+    const ground = await Ground.findById(groundId);
+    if (!ground) return res.status(404).json({ message: 'Площадка не найдена' });
+    if (!ground.availableHours || !ground.availableHours.start || !ground.availableHours.end) {
+      return res.status(400).json({ message: 'availableHours не указаны для площадки' });
+    }
+    const startHour = parseInt(ground.availableHours.start.split(':')[0]);
+    const endHour = parseInt(ground.availableHours.end.split(':')[0]);
+    const allSlots = [];
+    for (let h = startHour; h < endHour; h++) {
+      allSlots.push(`${String(h).padStart(2, '0')}:00–${String(h + 1).padStart(2, '0')}:00`);
+    }
+    const bookings = await Booking.find({ ground: groundId, date });
+    const occupied = bookings.flatMap(b => b.timeSlot.map(slot => slot.trim()));
+    const available = allSlots.filter(slot => !occupied.includes(slot.trim()));
+    res.json({ availableSlots: available });
+  } catch (err) {
+    res.status(500).json({ message: 'Ошибка получения свободных слотов', error: err.message });
+  }
   };
   
   // Get nearby grounds based on location

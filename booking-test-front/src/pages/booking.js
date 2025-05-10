@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
@@ -12,6 +12,29 @@ const Booking = () => {
   const [user, setUser] = useState({ name: '', email: '' });
   const [editingId, setEditingId] = useState(null);
   const [editSlots, setEditSlots] = useState([]);
+  const [availableSlots, setAvailableSlots] = useState([]);
+
+  const loadAvailableSlots = useCallback(async (groundId, date) => {
+    try {
+      const res = await axios.get(
+        `/api/bookings/available?groundId=${groundId}&date=${date}`,
+      );
+      setAvailableSlots(res.data.availableSlots || []);
+    } catch (err) {
+      console.error("Ошибка загрузки слотов:", err);
+      setAvailableSlots([]);
+    }
+  }, []);
+
+    const handleEditBooking = useCallback((booking) => {
+      if (!booking?.ground?._id || !booking?.date) {
+        alert("Невозможно загрузить доступные слоты");
+        return;
+      }
+      setEditingId(booking._id);
+      setEditSlots(booking.timeSlot);
+      loadAvailableSlots(booking.ground._id, booking.date);
+    }, [loadAvailableSlots]);
 
   const fetchMyBookings = async () => {
     try {
@@ -58,7 +81,7 @@ const Booking = () => {
     const timeSlots = selectedSlots[groundId];
     if (!timeSlots || timeSlots.length === 0) return setMessage('Выберите время');
     try {
-      const res = await axios.post('/api/bookings', {
+      await axios.post('/api/bookings', {
         ground: groundId,
         date: new Date().toISOString().split('T')[0],
         timeSlot: timeSlots
@@ -129,7 +152,6 @@ const Booking = () => {
           <p>Нет доступных площадок</p>
         ) : (
           grounds.map(g => {
-            const selectedTimeSlots = selectedSlots[g._id] || [];
             return (
               <div key={g._id} style={{ 
                 border: '1px solid #ccc', 
@@ -229,16 +251,17 @@ const Booking = () => {
                 {b.date?.substring(0, 10)} – {b.timeSlot.join(', ')} – {b.ground?.name}
                 {editingId === b._id ? (
                   <div>
-                    {['09:00–10:00','10:00–11:00','11:00–12:00','12:00–13:00','13:00–14:00','14:00–15:00'].map(slot => (
-                      <button
-                        key={slot}
-                        onClick={() =>
-                          setEditSlots(prev =>
-                            prev.includes(slot)
-                              ? prev.filter(s => s !== slot)
-                              : [...prev, slot]
-                          )
-                        }
+                    {availableSlots.length > 0 ? (
+                      availableSlots.map(slot => (
+                        <button
+                          key={slot}
+                          onClick={() =>
+                            setEditSlots(prev =>
+                              prev.includes(slot)
+                                ? prev.filter(s => s !== slot)
+                                : [...prev, slot]
+                            )
+                          }
                         style={{
                           padding: '4px 8px',
                           marginRight: 6,
@@ -251,7 +274,10 @@ const Booking = () => {
                       >
                         {slot}
                       </button>
-                    ))}
+                   ))
+                    ) : (
+                      <p>Нет доступных слотов для выбранной даты</p>
+                    )}
                     <div style={{ marginTop: 6 }}>
                       <button onClick={() => handleUpdate(b._id)} style={{ marginRight: 6 }}>Сохранить</button>
                       <button onClick={() => { setEditingId(null); setEditSlots([]); }}>Отмена</button>
@@ -261,10 +287,7 @@ const Booking = () => {
                   <div style={{ display: 'flex', gap: 10, marginTop: 6 }}>
                     <button onClick={() => handleDelete(b._id)} style={{ background: 'red', color: 'white', border: 'none', padding: '4px 8px', borderRadius: 4, cursor: 'pointer' }}>Удалить</button>
                     <button
-                      onClick={() => {
-                        setEditingId(b._id);
-                        setEditSlots(b.timeSlot);
-                      }}
+                      onClick={() => handleEditBooking(b)}
                       style={{ background: 'gray', color: 'white', border: 'none', padding: '4px 8px', borderRadius: 4 }}
                     >
                       Изменить
