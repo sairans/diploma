@@ -11,11 +11,9 @@ exports.createReview = async (req, res) => {
       ground: ground
     });
     if (!hasBooking) {
-      return res
-        .status(403)
-        .json({
-          message: 'Вы не можете оставить отзыв без бронирования этой площадки'
-        });
+      return res.status(403).json({
+        message: 'Вы не можете оставить отзыв без бронирования этой площадки'
+      });
     }
 
     const exists = await Review.findOne({ ground, user: req.user._id });
