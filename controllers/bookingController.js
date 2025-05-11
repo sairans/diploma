@@ -8,51 +8,105 @@ exports.createBooking = async (req, res) => {
   try {
     const { ground, date, timeSlot } = req.body;
 
-    const conflict = await Booking.findOne({
+    // 1. Валидация входных данных
+    if (!ground || !date || !timeSlot?.length) {
+      return res
+        .status(400)
+        .json({ message: 'Не все обязательные поля заполнены' });
+    }
+
+    // 2. Проверка существования площадки
+    const groundData = await Ground.findById(ground);
+    if (!groundData) {
+      return res.status(404).json({ message: 'Площадка не найдена' });
+    }
+
+    // 3. Проверка дня недели
+    const bookingDate = new Date(date);
+    if (isNaN(bookingDate)) {
+      return res.status(400).json({ message: 'Неверный формат даты' });
+    }
+
+    const dayOfWeek = bookingDate.getDay();
+    if (!groundData.availableWeekdays.includes(dayOfWeek)) {
+      return res.status(400).json({
+        message: `Площадка не работает по ${getWeekdayName(dayOfWeek)}`
+      });
+    }
+
+    // 4. Проверка пересечения временных слотов
+    const existingBookings = await Booking.find({
       ground,
       date,
       timeSlot: { $in: timeSlot }
     });
-    if (conflict) return res.status(400).json({ message: 'Слот уже занят' });
-    const existing = await Booking.findOne({
-      ground,
-      date,
-      timeSlot: { $in: timeSlot },
-      user: req.user._id
-    });
-    if (existing)
-      return res.status(400).json({ message: 'Слот уже занят вами' });
 
-    const groundData = await Ground.findById(ground);
-    const dayOfWeek = new Date(date).getDay(); // 0 = Вс, ..., 6 = Сб
+    if (existingBookings.length > 0) {
+      const conflictUsers = await User.find({
+        _id: { $in: existingBookings.map((b) => b.user) }
+      });
 
-    if (!groundData.availableWeekdays.includes(dayOfWeek)) {
-      return res
-        .status(400)
-        .json({ message: 'Площадка не работает в этот день недели' });
+      return res.status(400).json({
+        message: 'Конфликт бронирования',
+        conflicts: existingBookings.map((b) => ({
+          timeSlot: b.timeSlot,
+          user:
+            conflictUsers.find((u) => u._id.equals(b.user))?.name ||
+            'Неизвестный пользователь'
+        }))
+      });
     }
 
-    const booking = new Booking({ user: req.user._id, ground, date, timeSlot });
+    // 5. Создание бронирования
+    const booking = new Booking({
+      user: req.user._id,
+      ground,
+      date: bookingDate,
+      timeSlot
+    });
+
     await booking.save();
 
+    // 6. Отправка email
     const user = await User.findById(req.user._id);
+    if (user?.email) {
+      const html = `
+        <h2>Подтверждение бронирования</h2>
+        <p>Площадка: ${groundData.name}</p>
+        <p>Дата: ${bookingDate.toLocaleDateString('ru-RU')}</p>
+        <p>Время: ${timeSlot.join(', ')}</p>
+      `;
 
-    const html = `
-      <h2>Подтверждение бронирования</h2>
-      <p>Пользователь: ${user.name}</p>
-      <p>Площадка: ${groundData.name}</p>
-      <p>Дата: ${new Date(date).toDateString()}</p>
-      <p>Время: ${timeSlot.join(', ')}</p>
-    `;
+      await sendEmail({
+        to: user.email,
+        subject: 'Подтверждение бронирования',
+        html
+      });
+    }
 
-    await sendEmail({ to: user.email, subject: 'Новое бронирование', html });
     res.status(201).json(booking);
   } catch (err) {
-    res
-      .status(500)
-      .json({ message: 'Ошибка создания бронирования', error: err.message });
+    console.error('Ошибка создания бронирования:', err);
+    res.status(500).json({
+      message: 'Ошибка сервера при создании бронирования',
+      error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
   }
 };
+
+// Вспомогательная функция для названий дней недели
+function getWeekdayName(dayNumber) {
+  const weekdays = [
+    'воскресеньям',
+    'понедельникам',
+    'вторникам',
+    'средам',
+    'четвергам',
+    'пятницам',
+    'субботам'
+  ];
+  return weekdays[dayNumber] || 'неизвестному дню';
+}
 
 // Get my bookings
 exports.getMyBookings = async (req, res) => {
@@ -91,8 +145,37 @@ exports.updateBooking = async (req, res) => {
     }
 
     const { date, timeSlot } = req.body;
-    if (date) booking.date = date;
-    if (timeSlot) booking.timeSlot = timeSlot;
+    if (date) {
+      const selectedDate = new Date(date);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Сбрасываем время для сравнения только дат
+
+      if (selectedDate < today) {
+        return res
+          .status(400)
+          .json({ message: 'Нельзя выбрать прошедшую дату' });
+      }
+      booking.date = date;
+    }
+
+    // Проверка доступности временных слотов с конфликтом
+    if (timeSlot) {
+      const conflicting = await Booking.find({
+        _id: { $ne: booking._id },
+        ground: booking.ground,
+        date: booking.date,
+        timeSlot: { $in: timeSlot }
+      });
+
+      if (conflicting.length > 0) {
+        return res.status(400).json({
+          message: 'Некоторые из выбранных временных слотов уже заняты',
+          conflicts: conflicting.map((b) => b.timeSlot).flat()
+        });
+      }
+
+      booking.timeSlot = timeSlot;
+    }
 
     await booking.save();
 
