@@ -15,5 +15,8 @@ router.get('/me', protect, (req, res) => {
 router.post('/register', registerUser);
 router.post('/login', loginUser);
 router.get('/', protect, admin, getAllUsers);
+router.put('/me', protect, updateUserProfile);
+router.put('/payment', protect, addPaymentMethod);
+router.delete('/payment/:id', protect, deletePaymentMethod);
 
 module.exports = router;

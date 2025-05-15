@@ -71,3 +71,61 @@ exports.getAllUsers = async (req, res) => {
     res.status(500).json({ message: 'Ошибка получения пользователей' });
   }
 };
+
+exports.updateUserProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user)
+      return res.status(404).json({ message: 'Пользователь не найден' });
+
+    user.name = req.body.name || user.name;
+    user.phone = req.body.phone || user.phone;
+    user.avatar = req.body.avatar || user.avatar;
+
+    if (req.body.password && req.body.password.trim() !== '') {
+      const salt = await bcrypt.genSalt(10);
+      user.password = await bcrypt.hash(req.body.password, salt);
+    }
+
+    const updatedUser = await user.save();
+    res.json({ message: 'Данные обновлены', user: updatedUser });
+  } catch (err) {
+    res.status(500).json({ message: 'Ошибка обновления данных пользователя' });
+  }
+};
+
+exports.addUserCard = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    const { cardholderName, cardNumber, expiryDate, brand } = req.body;
+
+    if (!cardholderName || !cardNumber || !expiryDate) {
+      return res.status(400).json({ message: 'Заполните все поля' });
+    }
+
+    const last4 = cardNumber.slice(-4);
+    user.payments.push({
+      cardholderName,
+      cardNumber,
+      expiryDate,
+      brand,
+      last4
+    });
+
+    await user.save();
+    res.json({ message: 'Карта добавлена', payments: user.payments });
+  } catch (err) {
+    res.status(500).json({ message: 'Ошибка добавления карты' });
+  }
+};
+
+exports.deleteUserCard = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    user.payments = user.payments.filter((p) => p.last4 !== req.params.last4);
+    await user.save();
+    res.json({ message: 'Карта удалена', payments: user.payments });
+  } catch (err) {
+    res.status(500).json({ message: 'Ошибка удаления карты' });
+  }
+};

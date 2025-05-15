@@ -27,6 +27,18 @@ const userSchema = new mongoose.Schema(
     avatar: {
       type: String,
       default: 'https://example.com/default-avatar.png'
+    },
+    payments: {
+      type: [
+        {
+          cardholderName: { type: String, required: true },
+          cardNumber: { type: String, required: true },
+          expiryDate: { type: String, required: true },
+          brand: { type: String },
+          last4: { type: String }
+        }
+      ],
+      default: []
     }
   },
   {
