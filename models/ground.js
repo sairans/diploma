@@ -46,11 +46,13 @@ const groundSchema = new mongoose.Schema(
       default: ['https://example.com/placeholder-image.jpg'],
       required: false
     },
-    fields: {
-      type: [Number],
-      default: [1],
-      required: false
-    },
+    fields: [
+      {
+        number: { type: Number, required: true },
+        name: { type: String, required: false },
+        available: { type: Boolean, default: true }
+      }
+    ],
     availableHours: {
       start: {
         type: String, // Use 'HH:mm' format (24h) — e.g., '09:00'

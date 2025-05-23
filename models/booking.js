@@ -12,6 +12,10 @@ const bookingSchema = new mongoose.Schema(
       ref: 'Ground',
       required: true
     },
+    fieldNumber: {
+      type: Number,
+      required: true
+    },
     date: {
       type: Date,
       required: true

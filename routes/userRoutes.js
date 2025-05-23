@@ -2,7 +2,10 @@ const express = require('express');
 const {
   registerUser,
   loginUser,
-  getAllUsers
+  getAllUsers,
+  updateUserProfile,
+  addUserCard,
+  deleteUserCard
 } = require('../controllers/userController');
 const router = express.Router();
 const { protect } = require('../middlewares/auth');
@@ -16,7 +19,7 @@ router.post('/register', registerUser);
 router.post('/login', loginUser);
 router.get('/', protect, admin, getAllUsers);
 router.put('/me', protect, updateUserProfile);
-router.put('/payment', protect, addPaymentMethod);
-router.delete('/payment/:id', protect, deletePaymentMethod);
+router.put('/payment', protect, addUserCard);
+router.delete('/payment/:id', protect, deleteUserCard);
 
 module.exports = router;
