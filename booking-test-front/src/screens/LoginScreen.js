@@ -1,30 +1,58 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native';
-
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Image
+} from 'react-native';
+import axios from 'axios';
+import { useNavigation } from '@react-navigation/native';
 
 export default function LoginScreen({ navigation }) {
-  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Ошибка', 'Пожалуйста, заполните все поля');
+      return;
+    }
 
+    try {
+      await axios.post('http://172.20.10.5:5001/api/users/login', {
+        email,
+        password
+      });
+
+      Alert.alert('Успешно', 'Вы вошли в систему');
+      navigation.navigate('Main');
+    } catch (err) {
+      Alert.alert('Ошибка', err.response?.data?.message || 'Ошибка при входе');
+    }
+  };
   return (
     <View style={styles.container}>
       {/* Логотип */}
-      <Image source={require('../../assets/images/logo.png')} style={styles.logo} />
+      <Image
+        source={require('../../assets/images/logo.png')}
+        style={styles.logo}
+      />
 
       <Text style={styles.title}>SIGN IN</Text>
       <Text style={styles.subtitle}>Enter your phone number and password</Text>
 
       {/* Поле ввода телефона */}
       <View style={styles.inputContainer}>
-        <Text style={styles.flag}>🇰🇿</Text>
+        <Text style={styles.flag}>✉️</Text>
         <TextInput
           style={styles.input}
-          placeholder="+7 (...) ..."
+          placeholder="email"
           placeholderTextColor="#777"
-          keyboardType="phone-pad"
-          value={phone}
-          onChangeText={setPhone}
+          keyboardType="email-address"
+          value={email}
+          onChangeText={setEmail}
         />
       </View>
 
@@ -39,7 +67,9 @@ export default function LoginScreen({ navigation }) {
           onChangeText={setPassword}
         />
         <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-          <Text style={styles.togglePassword}>{showPassword ? '🙈' : '👁'}</Text>
+          <Text style={styles.togglePassword}>
+            {showPassword ? '🙈' : '👁'}
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -55,14 +85,17 @@ export default function LoginScreen({ navigation }) {
       </Text>
 
       {/* Кнопка входа */}
-      <TouchableOpacity style={styles.loginButton} onPress={() => navigation.navigate('Main')}>
+      <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
         <Text style={styles.loginText}>Sign in</Text>
       </TouchableOpacity>
 
       {/* Регистрация */}
       <Text style={styles.registerText}>
         No account yet?{' '}
-        <Text style={styles.registerLink} onPress={() => navigation.navigate('Register')}>
+        <Text
+          style={styles.registerLink}
+          onPress={() => navigation.navigate('Register')}
+        >
           Register
         </Text>
       </Text>
@@ -75,25 +108,25 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#1d1f1e',
     alignItems: 'center',
-    paddingTop: 80,
+    paddingTop: 80
   },
   logo: {
     width: 233,
     height: 216,
     marginTop: 50,
-    marginBottom: 20,
+    marginBottom: 20
   },
   title: {
     fontWeight: 400,
     fontSize: 48,
     color: '#FFFBD4',
     marginBottom: 10,
-    fontFamily: 'CinzelDecorative-Regular',
+    fontFamily: 'CinzelDecorative-Regular'
   },
   subtitle: {
     color: '#FFFBD4',
     fontSize: 14,
-    marginBottom: 20,
+    marginBottom: 20
   },
   inputContainer: {
     flexDirection: 'row',
@@ -102,26 +135,26 @@ const styles = StyleSheet.create({
     backgroundColor: '#333',
     borderRadius: 12,
     paddingHorizontal: 12,
-    marginBottom: 15,
+    marginBottom: 15
   },
   flag: {
     fontSize: 18,
-    marginRight: 10,
+    marginRight: 10
   },
   input: {
     flex: 1,
     padding: 12,
     fontSize: 16,
-    color: '#FFFBD4',
+    color: '#FFFBD4'
   },
   togglePassword: {
     fontSize: 16,
     color: '#FFFBD4',
-    marginLeft: 10,
+    marginLeft: 10
   },
   forgotPassword: {
     color: '#FFFBD4',
-    marginBottom: 15,
+    marginBottom: 15
   },
   loginButton: {
     backgroundColor: '#FFFBD4',
@@ -129,30 +162,30 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     width: '85%',
     alignItems: 'center',
-    marginVertical: 10,
+    marginVertical: 10
   },
   loginText: {
     color: '#1d1f1e',
     fontWeight: 'bold',
-    fontSize: 16,
+    fontSize: 16
   },
   terms: {
     color: '#FFFBD4',
     fontSize: 12,
     textAlign: 'center',
     marginVertical: 10,
-    paddingHorizontal: 20,
+    paddingHorizontal: 20
   },
   link: {
-    color: '#FF0000',
+    color: '#FF0000'
   },
   registerText: {
     color: '#FFFBD4',
     fontSize: 12,
-    marginTop: 10,
+    marginTop: 10
   },
   registerLink: {
     color: '#FF0000',
-    fontWeight: 'bold',
-  },
+    fontWeight: 'bold'
+  }
 });
