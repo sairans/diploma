@@ -1,0 +1,17 @@
+{
+  "migIndex": 1,
+  "data": [
+    {
+      "path": "assets/fonts/CinzelDecorative-Black.ttf",
+      "sha1": "2072783fa89c9424f2f52803caa9725b8ebdb05d"
+    },
+    {
+      "path": "assets/fonts/CinzelDecorative-Bold.ttf",
+      "sha1": "e28e0c1aaab05e33a1b3b4bdf71072e3ab97f839"
+    },
+    {
+      "path": "assets/fonts/CinzelDecorative-Regular.ttf",
+      "sha1": "c7c4f19fcfb7cc34ded9341ecc6d1c72ee272dbf"
+    }
+  ]
+}
