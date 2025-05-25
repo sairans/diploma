@@ -1,86 +1,84 @@
 import React from 'react';
-import { View, Text, Image, TouchableOpacity, ScrollView } from 'react-native';
-import { Ionicons, FontAwesome } from '@expo/vector-icons';
+import { View, Text, Image, TouchableOpacity, ScrollView, StyleSheet, Alert } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useRoute, useNavigation } from '@react-navigation/native';
 
-export default function ArenaDetailsScreen({ route, navigation }) {
-  const { arena } = route.params; // Получаем данные о выбранной арене
+
+export default function ArenaDetailsScreen() {
+  const route = useRoute();
+  const navigation = useNavigation();
+  const { venue } = route.params;
+
+  const handleBooking = () => {
+    Alert.alert('Бронирование', `Вы выбрали арену: ${venue.name}`);
+  };
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: '#fff' }}>
-      {/* Верхняя картинка */}
-      <Image source={{ uri: arena.image }} style={{ width: '100%', height: 200 }} />
+    <ScrollView style={styles.container}>
+      <Image
+        source={{ uri: venue.images?.[0] }}
+        style={styles.image}
+        resizeMode="cover"
+      />
 
-      {/* Кнопка Назад */}
-      <TouchableOpacity
-        style={{ position: 'absolute', top: 20, left: 15 }}
-        onPress={() => navigation.goBack()}
-      >
-        <Ionicons name="arrow-back" size={24} color="black" />
+      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+        <Ionicons name="arrow-back" size={24} color="white" />
       </TouchableOpacity>
 
-      {/* Основная информация */}
-      <View style={{ padding: 15 }}>
-        <Text style={{ fontSize: 20, fontWeight: 'bold' }}>{arena.name}</Text>
-        <Text style={{ color: 'gray' }}>{arena.type}</Text>
+      <View style={styles.content}>
+        <Text style={styles.name}>{venue.name}</Text>
+        <Text style={styles.address}>{venue.address}</Text>
 
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 5 }}>
-          <Ionicons name="location-outline" size={16} color="black" />
-          <Text style={{ marginLeft: 5 }}>{arena.address}</Text>
-        </View>
+        <Text style={styles.label}>Описание:</Text>
+        <Text style={styles.text}>{venue.description || 'Нет описания'}</Text>
 
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 5 }}>
-          <FontAwesome name="money" size={16} color="black" />
-          <Text style={{ marginLeft: 5 }}>from {arena.price} тнг/час</Text>
-        </View>
+        <Text style={styles.label}>Цена:</Text>
+        <Text style={styles.text}>{venue.pricePerHour} тг/час</Text>
+
+        <Text style={styles.label}>Часы работы:</Text>
+        <Text style={styles.text}>{venue.availableHours?.start} - {venue.availableHours?.end}</Text>
+
+        <Text style={styles.label}>Доступные дни:</Text>
+        <Text style={styles.text}>{venue.availableWeekdays?.join(', ')}</Text>
+
+        <TouchableOpacity
+  style={{
+    backgroundColor: '#FDE047',
+    padding: 15,
+    margin: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+  }}
+  onPress={() => navigation.navigate('ReservationScreen', {
+    groundId: venue._id,
+    fields: venue.fields || [],
+  })}
+>
+  <Text style={{ fontWeight: 'bold' }}>Забронировать</Text>
+</TouchableOpacity>
+
       </View>
-
-      {/* Вкладки (о поле, отзывы, фото) */}
-      <View style={{ flexDirection: 'row', justifyContent: 'space-around', borderBottomWidth: 1, borderColor: '#ddd' }}>
-        <Text style={{ fontWeight: 'bold', paddingBottom: 10, borderBottomWidth: 2, borderColor: 'black' }}>About</Text>
-        <Text style={{ color: 'gray' }}>Reviews</Text>
-        <Text style={{ color: 'gray' }}>Photos</Text>
-      </View>
-
-      {/* Удобства */}
-      <View style={{ padding: 15 }}>
-        <Text style={{ fontWeight: 'bold' }}>Conveniences</Text>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 5 }}>
-          {arena.features.map((feature, index) => (
-            <View key={index} style={{ flexDirection: 'row', alignItems: 'center', width: '50%', marginVertical: 5 }}>
-              <Ionicons name={feature.icon} size={16} color="black" />
-              <Text style={{ marginLeft: 5 }}>{feature.name}</Text>
-            </View>
-          ))}
-        </View>
-      </View>
-
-      {/* О поле */}
-      <View style={{ padding: 15, backgroundColor: '#f9f9f9' }}>
-        <Text style={{ fontWeight: 'bold' }}>About field</Text>
-        <Text>Size: {arena.size}</Text>
-        <Text>Surface: {arena.surface}</Text>
-        <Text>Fields: {arena.fields}</Text>
-        <Text>Balls: {arena.balls}</Text>
-      </View>
-
-      {/* Способы оплаты */}
-      <View style={{ padding: 15 }}>
-        <Text style={{ fontWeight: 'bold' }}>Payment method</Text>
-        <Text>{arena.payment}</Text>
-      </View>
-
-      {/* Кнопка бронирования */}
-      <TouchableOpacity
-        style={{
-          backgroundColor: '#FDE047',
-          padding: 15,
-          margin: 15,
-          borderRadius: 10,
-          alignItems: 'center',
-        }}
-      >
-        <Text style={{ fontWeight: 'bold' }}>Make a reservation</Text>
-      </TouchableOpacity>
     </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#fff' },
+  image: { width: '100%', height: 200 },
+  backButton: {
+    position: 'absolute', top: 40, left: 20,
+    backgroundColor: 'rgba(0,0,0,0.6)', padding: 8, borderRadius: 20
+  },
+  content: { padding: 20 },
+  name: { fontSize: 24, fontWeight: 'bold', marginBottom: 10 },
+  address: { fontSize: 14, color: '#777', marginBottom: 10 },
+  label: { fontSize: 16, fontWeight: 'bold', marginTop: 10 },
+  text: { fontSize: 14, marginTop: 4 },
+  button: {
+    backgroundColor: '#1d1f1e', marginTop: 20,
+    padding: 15, borderRadius: 10, alignItems: 'center'
+  },
+  buttonText: {
+    color: '#FFFBD4', fontSize: 16, fontWeight: 'bold'
+  }
+});

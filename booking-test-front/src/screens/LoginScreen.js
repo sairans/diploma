@@ -5,7 +5,8 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Image
+  Image,
+  Alert
 } from 'react-native';
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
@@ -21,7 +22,7 @@ export default function LoginScreen({ navigation }) {
     }
 
     try {
-      await axios.post('http://172.20.10.5:5001/api/users/login', {
+      await axios.post('http://192.168.0.14:5001/api/users/login', {
         email,
         password
       });
