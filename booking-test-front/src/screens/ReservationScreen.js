@@ -29,7 +29,16 @@ export default function ReservationPage() {
 
     Alert.alert(
       'Успех',
-      `Арендовано поле №${fieldNumber} на ${date}, время: ${timeslot}`
+      `Арендовано поле №${fieldNumber} на ${date}, время: ${timeslot}`,
+      [
+        {
+          text: 'ОК',
+          onPress: () => {
+            // Переход на экран активных бронирований
+            navigation.navigate('ActiveReservationScreen');
+          }
+        }
+      ]
     );
 
     // Здесь можно сделать POST-запрос

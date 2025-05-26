@@ -14,6 +14,7 @@ import MapView, { Marker } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
+import exampleImage from '../../assets/images/icon.png';
 
 export default function MainScreen() {
   const navigation = useNavigation();
@@ -25,7 +26,7 @@ export default function MainScreen() {
   useEffect(() => {
     const fetchGrounds = async () => {
       try {
-        const res = await axios.get('http://192.168.160.191:5001/api/grounds');
+        const res = await axios.get('http://192.168.221.23:5001/api/grounds');
         setGrounds(res.data.grounds);
       } catch (error) {
         console.error('Ошибка загрузки данных:', error);
@@ -113,9 +114,9 @@ export default function MainScreen() {
                   onPress={() => navigation.navigate('ArenaDetails', { venue: item })}
                 >
                   <Image
-                    source={{ uri: item.images?.[0] }}
-                    style={styles.venueImage}
-                  />
+  source={exampleImage}
+  style={styles.venueImage}
+/>
                   <View style={styles.cardDetails}>
                     <Text style={styles.venueName}>{item.name}</Text>
                     <Text style={styles.venueInfo}>Address: {item.address}</Text>
@@ -130,18 +131,39 @@ export default function MainScreen() {
       </Animated.View>
 
       <View style={styles.bottomNav}>
-        {[
-          { icon: 'home', label: 'Home' },
-          { icon: 'calendar', label: 'Reservations' },
-          { icon: 'newspaper', label: 'Posts' },
-          { icon: 'person', label: 'Profile' },
-        ].map((item, index) => (
-          <TouchableOpacity key={index} style={styles.navButton}>
-            <Ionicons name={item.icon} size={24} color="#1d1f1e" />
-            <Text style={styles.navText}>{item.label}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+  <TouchableOpacity
+    style={styles.navButton}
+    onPress={() => navigation.navigate('Main')}
+  >
+    <Ionicons name="home" size={24} color="#1d1f1e" />
+    <Text style={styles.navText}>Home</Text>
+  </TouchableOpacity>
+
+  <TouchableOpacity
+    style={styles.navButton}
+    onPress={() => navigation.navigate('ActiveReservationScreen')}
+  >
+    <Ionicons name="calendar" size={24} color="#1d1f1e" />
+    <Text style={styles.navText}>Reservations</Text>
+  </TouchableOpacity>
+
+  <TouchableOpacity
+    style={styles.navButton}
+    onPress={() => console.log('Posts')}
+  >
+    <Ionicons name="newspaper" size={24} color="#1d1f1e" />
+    <Text style={styles.navText}>Posts</Text>
+  </TouchableOpacity>
+
+  <TouchableOpacity
+    style={styles.navButton}
+    onPress={() => console.log('Profile')}
+  >
+    <Ionicons name="person" size={24} color="#1d1f1e" />
+    <Text style={styles.navText}>Profile</Text>
+  </TouchableOpacity>
+</View>
+
     </View>
   );
 }
