@@ -23,10 +23,14 @@ export default function ActiveReservationsScreen() {
     useCallback(() => {
       const fetchReservations = async () => {
         try {
-          setLoading(true);
-          const response = await fetch('https://192.168.221.23:5001/');
-          const data = await response.json();
-          setReservations(data);
+          const token = await AsyncStorage.getItem('token');
+          if (!token) return Alert.alert('Ошибка', 'Вы не авторизованы');
+
+          const response = await axios.get(`${API_URL}/api/bookings/my`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+
+          setReservations(response.data.bookings);
         } catch (error) {
           Alert.alert('Ошибка', 'Не удалось загрузить бронирования');
         } finally {
@@ -81,15 +85,15 @@ export default function ActiveReservationsScreen() {
           <Ionicons name="home" size={24} color="#1d1f1e" />
           <Text style={styles.navText}>Home</Text>
         </TouchableOpacity>
-      
+
         <TouchableOpacity
           style={styles.navButton}
-          onPress={() => navigation.navigate('ActiveReservationScreen')}
+          onPress={() => navigation.navigate('ActiveReservations')}
         >
           <Ionicons name="calendar" size={24} color="#1d1f1e" />
           <Text style={styles.navText}>Reservations</Text>
         </TouchableOpacity>
-      
+
         <TouchableOpacity
           style={styles.navButton}
           onPress={() => console.log('Posts')}
@@ -97,15 +101,14 @@ export default function ActiveReservationsScreen() {
           <Ionicons name="newspaper" size={24} color="#1d1f1e" />
           <Text style={styles.navText}>Posts</Text>
         </TouchableOpacity>
-      
+
         <TouchableOpacity
-        style={styles.navButton}
-        onPress={() => navigation.navigate('ProfileScreen')} // заменили
-      >
-        <Ionicons name="person" size={24} color="#1d1f1e" />
-        <Text style={styles.navText}>Profile</Text>
-      </TouchableOpacity>
-      
+          style={styles.navButton}
+          onPress={() => console.log('Profile')}
+        >
+          <Ionicons name="person" size={24} color="#1d1f1e" />
+          <Text style={styles.navText}>Profile</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -121,7 +124,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 20,
+    marginBottom: 20
   },
   item: {
     padding: 15,
