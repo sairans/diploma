@@ -6,13 +6,10 @@ import {
   StyleSheet,
   ActivityIndicator,
   Alert,
-  TouchableOpacity
+  TouchableOpacity,
 } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
-import { API_URL } from '@env';
 
 export default function ActiveReservationsScreen() {
   const [reservations, setReservations] = useState([]);
@@ -24,11 +21,11 @@ export default function ActiveReservationsScreen() {
       const fetchReservations = async () => {
         try {
           setLoading(true);
-          const response = await fetch('https://192.168.221.23:5001/');
+          const response = await fetch('https://192.168.221.23:5001/api/bookings/my');
           const data = await response.json();
           setReservations(data);
         } catch (error) {
-          Alert.alert('Ошибка', 'Не удалось загрузить бронирования');
+          Alert.alert('Ошибка', 'Не удалось загрузить данные');
         } finally {
           setLoading(false);
         }
@@ -40,15 +37,9 @@ export default function ActiveReservationsScreen() {
 
   const renderItem = ({ item }) => (
     <View style={styles.item}>
-      <Text style={styles.field}>Площадка: {item.ground?.name || '—'}</Text>
-      <Text>Поле №: {item.fieldNumber}</Text>
-      <Text>Дата: {new Date(item.date).toLocaleDateString()}</Text>
-      <Text>
-        Время:{' '}
-        {Array.isArray(item.timeSlot)
-          ? item.timeSlot.join(', ')
-          : item.timeSlot}
-      </Text>
+      <Text style={styles.field}>Поле: {item.fieldNumber}</Text>
+      <Text>Дата: {item.date}</Text>
+      <Text>Время: {item.timeslot}</Text>
     </View>
   );
 
@@ -62,16 +53,12 @@ export default function ActiveReservationsScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Мои Бронирования</Text>
-      {reservations.length === 0 ? (
-        <Text>У вас нет активных бронирований</Text>
-      ) : (
-        <FlatList
-          data={reservations}
-          keyExtractor={(item) => item._id}
-          renderItem={renderItem}
-        />
-      )}
+      <Text style={styles.title}>Активные бронирования</Text>
+      <FlatList
+        data={reservations}
+        keyExtractor={(item) => item._id}
+        renderItem={renderItem}
+      />
 
       <View style={styles.bottomNav}>
         <TouchableOpacity
@@ -81,15 +68,15 @@ export default function ActiveReservationsScreen() {
           <Ionicons name="home" size={24} color="#1d1f1e" />
           <Text style={styles.navText}>Home</Text>
         </TouchableOpacity>
-      
+
         <TouchableOpacity
           style={styles.navButton}
-          onPress={() => navigation.navigate('ActiveReservationScreen')}
+          onPress={() => navigation.navigate('ActiveReservations')}
         >
           <Ionicons name="calendar" size={24} color="#1d1f1e" />
           <Text style={styles.navText}>Reservations</Text>
         </TouchableOpacity>
-      
+
         <TouchableOpacity
           style={styles.navButton}
           onPress={() => console.log('Posts')}
@@ -97,15 +84,14 @@ export default function ActiveReservationsScreen() {
           <Ionicons name="newspaper" size={24} color="#1d1f1e" />
           <Text style={styles.navText}>Posts</Text>
         </TouchableOpacity>
-      
+
         <TouchableOpacity
-        style={styles.navButton}
-        onPress={() => navigation.navigate('ProfileScreen')} // заменили
-      >
-        <Ionicons name="person" size={24} color="#1d1f1e" />
-        <Text style={styles.navText}>Profile</Text>
-      </TouchableOpacity>
-      
+          style={styles.navButton}
+          onPress={() => console.log('Profile')}
+        >
+          <Ionicons name="person" size={24} color="#1d1f1e" />
+          <Text style={styles.navText}>Profile</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -114,9 +100,9 @@ export default function ActiveReservationsScreen() {
 const styles = StyleSheet.create({
   container: {
     padding: 20,
-    paddingBottom: 100,
+    paddingBottom: 100, // чтобы контент не перекрывался навигацией
     flex: 1,
-    backgroundColor: '#fff'
+    backgroundColor: '#fff',
   },
   title: {
     fontSize: 24,
@@ -128,15 +114,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 8,
-    marginBottom: 10
+    marginBottom: 10,
   },
   field: {
-    fontWeight: 'bold'
+    fontWeight: 'bold',
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   bottomNav: {
     paddingBottom: 32,
@@ -148,8 +134,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     backgroundColor: '#F5F5F5',
     paddingVertical: 12,
-    elevation: 5
+    borderRadius: 0,
+    elevation: 5,
   },
   navButton: { alignItems: 'center' },
-  navText: { fontSize: 12, color: '#000', marginTop: 4 }
+  navText: { fontSize: 12, color: '#000', marginTop: 4 },
 });
