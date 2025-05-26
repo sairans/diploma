@@ -156,12 +156,13 @@ export default function MainScreen() {
   </TouchableOpacity>
 
   <TouchableOpacity
-    style={styles.navButton}
-    onPress={() => console.log('Profile')}
-  >
-    <Ionicons name="person" size={24} color="#1d1f1e" />
-    <Text style={styles.navText}>Profile</Text>
-  </TouchableOpacity>
+  style={styles.navButton}
+  onPress={() => navigation.navigate('ProfileScreen')} // заменили
+>
+  <Ionicons name="person" size={24} color="#1d1f1e" />
+  <Text style={styles.navText}>Profile</Text>
+</TouchableOpacity>
+
 </View>
 
     </View>
