@@ -16,24 +16,6 @@ export default function ActiveReservationsScreen() {
   const [loading, setLoading] = useState(true);
   const navigation = useNavigation();
 
-  useFocusEffect(
-    useCallback(() => {
-      const fetchReservations = async () => {
-        try {
-          setLoading(true);
-          const response = await fetch('https://192.168.221.23:5001/api/bookings/my');
-          const data = await response.json();
-          setReservations(data);
-        } catch (error) {
-          Alert.alert('Ошибка', 'Не удалось загрузить данные');
-        } finally {
-          setLoading(false);
-        }
-      };
-
-      fetchReservations();
-    }, [])
-  );
 
   const renderItem = ({ item }) => (
     <View style={styles.item}>
