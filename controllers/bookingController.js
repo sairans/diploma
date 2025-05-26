@@ -14,27 +14,28 @@ exports.createBooking = async (req, res) => {
         .status(400)
         .json({ message: 'Не все обязательные поля заполнены' });
     }
-    // if (fieldNumber == null) {
-    //   return res
-    //     .status(400)
-    //     .json({ message: 'Не указан номер поля (fieldNumber)' });
-    // }
+
+    if (fieldNumber == null) {
+      return res
+        .status(400)
+        .json({ message: 'Не указан номер поля (fieldNumber)' });
+    }
 
     // 2. Проверка существования площадки
     const groundData = await Ground.findById(ground);
-    // const selectedField = groundData.fields.find(
-    //   (f) => f.number === fieldNumber
-    // );
-    // if (!selectedField) {
-    //   return res
-    //     .status(400)
-    //     .json({ message: 'Указанное поле не найдено в этой площадке' });
-    // }
-    // if (!selectedField.available) {
-    //   return res
-    //     .status(400)
-    //     .json({ message: `Поле ${fieldNumber} недоступно для бронирования` });
-    // }
+    const selectedField = groundData.fields.find(
+      (f) => f.number === fieldNumber
+    );
+    if (!selectedField) {
+      return res
+        .status(400)
+        .json({ message: 'Указанное поле не найдено в этой площадке' });
+    }
+    if (!selectedField.available) {
+      return res
+        .status(400)
+        .json({ message: `Поле ${fieldNumber} недоступно для бронирования` });
+    }
     if (!groundData) {
       return res.status(404).json({ message: 'Площадка не найдена' });
     }
