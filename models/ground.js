@@ -48,8 +48,8 @@ const groundSchema = new mongoose.Schema(
     },
     fields: [
       {
-        number: { type: Number, required: true },
-        name: { type: String, required: false },
+        number: { type: Number, required: true, default: 1 },
+        name: { type: String, required: false, default: 'Main Field' },
         available: { type: Boolean, default: true }
       }
     ],
