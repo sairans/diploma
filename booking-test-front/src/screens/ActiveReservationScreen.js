@@ -10,6 +10,9 @@ import {
 } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
+import { API_URL } from '@env';
 
 export default function ActiveReservationsScreen() {
   const [reservations, setReservations] = useState([]);
@@ -20,18 +23,16 @@ export default function ActiveReservationsScreen() {
     useCallback(() => {
       const fetchReservations = async () => {
         try {
-          const response = await axios.get(
-            'http://192.168.221.23:5001/api/bookings/my',
-            {
-              headers: {
-                Authorization: `Bearer ${localStorage.getItem('token')}` // или AsyncStorage в React Native
-              }
-            }
-          );
+          const token = await AsyncStorage.getItem('token');
+          if (!token) return Alert.alert('Ошибка', 'Вы не авторизованы');
 
-          console.log(response.data.bookings); // Массив бронирований
+          const response = await axios.get(`${API_URL}/api/bookings/my`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+
+          setReservations(response.data.bookings);
         } catch (error) {
-          Alert.alert('Ошибка', 'Не удалось загрузить данные');
+          Alert.alert('Ошибка', 'Не удалось загрузить бронирования');
         } finally {
           setLoading(false);
         }
@@ -43,9 +44,15 @@ export default function ActiveReservationsScreen() {
 
   const renderItem = ({ item }) => (
     <View style={styles.item}>
-      <Text style={styles.field}>Поле: {item.fieldNumber}</Text>
-      <Text>Дата: {item.date}</Text>
-      <Text>Время: {item.timeslot}</Text>
+      <Text style={styles.field}>Площадка: {item.ground?.name || '—'}</Text>
+      <Text>Поле №: {item.fieldNumber}</Text>
+      <Text>Дата: {new Date(item.date).toLocaleDateString()}</Text>
+      <Text>
+        Время:{' '}
+        {Array.isArray(item.timeSlot)
+          ? item.timeSlot.join(', ')
+          : item.timeSlot}
+      </Text>
     </View>
   );
 
@@ -59,12 +66,16 @@ export default function ActiveReservationsScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Активные бронирования</Text>
-      <FlatList
-        data={reservations}
-        keyExtractor={(item) => item._id}
-        renderItem={renderItem}
-      />
+      <Text style={styles.title}>Мои Бронирования</Text>
+      {reservations.length === 0 ? (
+        <Text>У вас нет активных бронирований</Text>
+      ) : (
+        <FlatList
+          data={reservations}
+          keyExtractor={(item) => item._id}
+          renderItem={renderItem}
+        />
+      )}
 
       <View style={styles.bottomNav}>
         <TouchableOpacity
@@ -106,7 +117,7 @@ export default function ActiveReservationsScreen() {
 const styles = StyleSheet.create({
   container: {
     padding: 20,
-    paddingBottom: 100, // чтобы контент не перекрывался навигацией
+    paddingBottom: 100,
     flex: 1,
     backgroundColor: '#fff'
   },
@@ -140,7 +151,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     backgroundColor: '#F5F5F5',
     paddingVertical: 12,
-    borderRadius: 0,
     elevation: 5
   },
   navButton: { alignItems: 'center' },
