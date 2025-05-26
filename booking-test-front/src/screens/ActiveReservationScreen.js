@@ -6,7 +6,7 @@ import {
   StyleSheet,
   ActivityIndicator,
   Alert,
-  TouchableOpacity,
+  TouchableOpacity
 } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -20,10 +20,16 @@ export default function ActiveReservationsScreen() {
     useCallback(() => {
       const fetchReservations = async () => {
         try {
-          setLoading(true);
-          const response = await fetch('https://192.168.221.23:5001/');
-          const data = await response.json();
-          setReservations(data);
+          const response = await axios.get(
+            'http://192.168.221.23:5001/api/bookings/my',
+            {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem('token')}` // или AsyncStorage в React Native
+              }
+            }
+          );
+
+          console.log(response.data.bookings); // Массив бронирований
         } catch (error) {
           Alert.alert('Ошибка', 'Не удалось загрузить данные');
         } finally {
@@ -102,27 +108,27 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingBottom: 100, // чтобы контент не перекрывался навигацией
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#fff'
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 20,
+    marginBottom: 20
   },
   item: {
     padding: 15,
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 8,
-    marginBottom: 10,
+    marginBottom: 10
   },
   field: {
-    fontWeight: 'bold',
+    fontWeight: 'bold'
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
+    alignItems: 'center'
   },
   bottomNav: {
     paddingBottom: 32,
@@ -135,8 +141,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F5F5',
     paddingVertical: 12,
     borderRadius: 0,
-    elevation: 5,
+    elevation: 5
   },
   navButton: { alignItems: 'center' },
-  navText: { fontSize: 12, color: '#000', marginTop: 4 },
+  navText: { fontSize: 12, color: '#000', marginTop: 4 }
 });
