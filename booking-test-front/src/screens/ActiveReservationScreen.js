@@ -16,6 +16,24 @@ export default function ActiveReservationsScreen() {
   const [loading, setLoading] = useState(true);
   const navigation = useNavigation();
 
+  useFocusEffect(
+    useCallback(() => {
+      const fetchReservations = async () => {
+        try {
+          setLoading(true);
+          const response = await fetch('https://192.168.221.23:5001/');
+          const data = await response.json();
+          setReservations(data);
+        } catch (error) {
+          Alert.alert('Ошибка', 'Не удалось загрузить данные');
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchReservations();
+    }, [])
+  );
 
   const renderItem = ({ item }) => (
     <View style={styles.item}>
@@ -50,15 +68,15 @@ export default function ActiveReservationsScreen() {
           <Ionicons name="home" size={24} color="#1d1f1e" />
           <Text style={styles.navText}>Home</Text>
         </TouchableOpacity>
-
+      
         <TouchableOpacity
           style={styles.navButton}
-          onPress={() => navigation.navigate('ActiveReservations')}
+          onPress={() => navigation.navigate('ActiveReservationScreen')}
         >
           <Ionicons name="calendar" size={24} color="#1d1f1e" />
           <Text style={styles.navText}>Reservations</Text>
         </TouchableOpacity>
-
+      
         <TouchableOpacity
           style={styles.navButton}
           onPress={() => console.log('Posts')}
@@ -66,14 +84,15 @@ export default function ActiveReservationsScreen() {
           <Ionicons name="newspaper" size={24} color="#1d1f1e" />
           <Text style={styles.navText}>Posts</Text>
         </TouchableOpacity>
-
+      
         <TouchableOpacity
-          style={styles.navButton}
-          onPress={() => console.log('Profile')}
-        >
-          <Ionicons name="person" size={24} color="#1d1f1e" />
-          <Text style={styles.navText}>Profile</Text>
-        </TouchableOpacity>
+        style={styles.navButton}
+        onPress={() => navigation.navigate('ProfileScreen')} // заменили
+      >
+        <Ionicons name="person" size={24} color="#1d1f1e" />
+        <Text style={styles.navText}>Profile</Text>
+      </TouchableOpacity>
+      
       </View>
     </View>
   );
