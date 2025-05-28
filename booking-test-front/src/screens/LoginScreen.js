@@ -9,6 +9,7 @@ import {
   Alert
 } from 'react-native';
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 
 export default function LoginScreen({ navigation }) {
@@ -22,10 +23,15 @@ export default function LoginScreen({ navigation }) {
     }
 
     try {
-      await axios.post('http://192.168.221.23:5001/api/users/login', {
-        email,
-        password
-      });
+      const response = await axios.post(
+        'http://192.168.221.11:5001/api/users/login',
+        {
+          email,
+          password
+        }
+      );
+
+      await AsyncStorage.setItem('token', response.data.token);
 
       Alert.alert('Успешно', 'Вы вошли в систему');
       navigation.navigate('Main');
@@ -36,10 +42,7 @@ export default function LoginScreen({ navigation }) {
   return (
     <View style={styles.container}>
       {/* Логотип */}
-      <Image
-        source={require('../../assets/images/logo.png')}
-        style={styles.logo}
-      />
+      <Image source={require('../../assets/favicon.png')} style={styles.logo} />
 
       <Text style={styles.title}>SIGN IN</Text>
       <Text style={styles.subtitle}>Enter your phone number and password</Text>

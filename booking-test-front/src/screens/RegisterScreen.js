@@ -32,7 +32,7 @@ export default function RegisterScreen() {
     }
 
     try {
-      await axios.post('http://192.168.160.191:5001/api/users/register', {
+      await axios.post('http://192.168.221.11:5001/api/users/register', {
         name,
         phone,
         email,
@@ -53,10 +53,7 @@ export default function RegisterScreen() {
 
   return (
     <View style={styles.container}>
-      <Image
-        source={require('../../assets/images/logo.png')}
-        style={styles.logo}
-      />
+      <Image source={require('../../assets/favicon.png')} style={styles.logo} />
 
       <Text style={styles.title}>REGISTER</Text>
 
@@ -213,7 +210,7 @@ const styles = StyleSheet.create({
   loginLink: {
     color: '#FF0000',
     fontWeight: 'bold',
-    paddingBottom: 30,
+    paddingBottom: 30
   },
   togglePassword: {
     fontSize: 18,

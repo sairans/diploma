@@ -11,16 +11,21 @@
   },
   "dependencies": {
     "@expo/metro-runtime": "~5.0.4",
+    "@react-native-async-storage/async-storage": "2.1.2",
     "@react-native-picker/picker": "^2.11.0",
     "@react-navigation/native": "^7.0.14",
     "@react-navigation/stack": "^7.1.1",
     "axios": "^1.9.0",
     "expo": "53.0.9",
     "expo-font": "^13.0.4",
+    "expo-image": "~2.1.7",
     "expo-status-bar": "~2.2.3",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "react-native": "0.79.2",
+    "react-native-calendar": "^0.13.1",
+    "react-native-calendars": "^1.1312.1",
+    "react-native-dotenv": "^3.4.11",
     "react-native-gesture-handler": "~2.24.0",
     "react-native-linear-gradient": "^2.8.3",
     "react-native-maps": "1.20.1",
@@ -35,7 +40,8 @@
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
-    "@babel/preset-react": "^7.27.1"
+    "@babel/preset-react": "^7.27.1",
+    "babel-plugin-dotenv": "^0.1.1"
   },
   "private": true
 }
