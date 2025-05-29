@@ -1,10 +1,19 @@
 import React, { useEffect, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback } from 'react';
 import {
-  View, Text, TouchableOpacity, StyleSheet, Image, ScrollView
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Image,
+  ScrollView
 } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 
 export default function ProfileScreen({ navigation }) {
   const route = useRoute();
@@ -15,7 +24,7 @@ export default function ProfileScreen({ navigation }) {
     phone: '+7-(778)-634-89-21',
     city: 'Astana',
     language: 'English',
-    avatar: require('../../assets/images/icon.png'),
+    avatar: require('../../assets/images/icon.png')
   });
 
   useEffect(() => {
@@ -23,11 +32,37 @@ export default function ProfileScreen({ navigation }) {
       setUser((prev) => ({
         ...prev,
         name: routeUser.name,
-        phone: routeUser.phone,
+        phone: routeUser.phone
         // опционально можно добавить avatar, если он есть в объекте
       }));
     }
   }, [routeUser]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const fetchUserData = async () => {
+        try {
+          const token = await AsyncStorage.getItem('token');
+          if (!token) return;
+          const response = await axios.get(
+            `http://192.168.221.11:5001/api/users/me`,
+            {
+              headers: { Authorization: `Bearer ${token}` }
+            }
+          );
+          const userData = response.data;
+          setUser((prev) => ({
+            ...prev,
+            ...userData,
+            avatar: userData.avatar ? { uri: userData.avatar } : prev.avatar
+          }));
+        } catch (error) {
+          console.error('Failed to fetch user data:', error);
+        }
+      };
+      fetchUserData();
+    }, [])
+  );
 
   const MenuItem = ({ icon, label, value, onPress }) => (
     <TouchableOpacity style={styles.menuItem} onPress={onPress}>
@@ -45,7 +80,10 @@ export default function ProfileScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={{ paddingBottom: 80 }}>
-        <Image source={require('../../assets/images/logo.png')} style={styles.headerImage} />
+        <Image
+          source={require('../../assets/images/logo.png')}
+          style={styles.headerImage}
+        />
 
         <View style={styles.avatarContainer}>
   <Image source={user.avatar} style={styles.avatar} />
@@ -114,20 +152,26 @@ export default function ProfileScreen({ navigation }) {
   );
 }
 
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#fff'
   },
   headerImage: {
+<<<<<<< HEAD
     width: '450%',
     height: 240,
     resizeMode: 'cover',
+=======
+    width: '100%',
+    height: 140,
+    resizeMode: 'cover'
+>>>>>>> 5e509252dbd5080c9ccb3b379becf9cebed321e1
   },
   avatarContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+<<<<<<< HEAD
     padding: 16,
     position: 'relative',
     top: -60,
@@ -151,6 +195,26 @@ const styles = StyleSheet.create({
   phoneNumber: {
     fontSize: 16,
     color: '#555',
+=======
+    marginTop: -40,
+    marginBottom: 10
+  },
+  avatar: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    borderWidth: 2,
+    borderColor: '#fff'
+  },
+  username: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginTop: 6
+  },
+  phoneNumber: {
+    fontSize: 14,
+    color: '#777'
+>>>>>>> 5e509252dbd5080c9ccb3b379becf9cebed321e1
   },
   menuBlock: {
     backgroundColor: '#f9f9f9',
@@ -158,7 +222,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 12,
-    marginHorizontal: 12,
+    marginHorizontal: 12
   },
   menuItem: {
     flexDirection: 'row',
@@ -166,24 +230,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 14,
     borderBottomColor: '#eee',
-    borderBottomWidth: 1,
+    borderBottomWidth: 1
   },
   menuLeft: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'center'
   },
   menuLabel: {
     marginLeft: 10,
-    fontSize: 16,
+    fontSize: 16
   },
   menuRight: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'center'
   },
   menuValue: {
     marginRight: 4,
     fontSize: 14,
-    color: '#888',
+    color: '#888'
   },
   signOutButton: {
     flexDirection: 'row',
@@ -193,16 +257,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffecec',
     marginHorizontal: 20,
     paddingVertical: 12,
-    borderRadius: 12,
+    borderRadius: 12
   },
   signOutText: {
     marginLeft: 6,
     fontSize: 16,
     color: '#ff3b30',
-    fontWeight: '600',
+    fontWeight: '600'
   },
   bottomNav: {
-  paddingBottom: 32,
+    paddingBottom: 32,
     position: 'absolute',
     bottom: 0,
     left: 0,
@@ -212,15 +276,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F5F5',
     paddingVertical: 12,
     borderRadius: 0,
-    elevation: 5,
-},
-navButton: {
-  justifyContent: 'center',
-  alignItems: 'center',
-},
-navText: {
-  fontSize: 12,
-  marginTop: 4,
-  color: '#1d1f1e',
-},
+    elevation: 5
+  },
+  navButton: {
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  navText: {
+    fontSize: 12,
+    marginTop: 4,
+    color: '#1d1f1e'
+  }
 });

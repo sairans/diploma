@@ -97,7 +97,7 @@ exports.createBooking = async (req, res) => {
     const booking = new Booking({
       user: req.user._id,
       ground,
-      // fieldNumber,
+      fieldNumber,
       date: bookingDate,
       timeSlot
     });

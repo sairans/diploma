@@ -50,7 +50,11 @@ export default function RegisterScreen() {
     }
 
     try {
+<<<<<<< HEAD
       await axios.post('http://192.168.14.23:5001/api/users/register', {
+=======
+      await axios.post('http://192.168.221.11:5001/api/users/register', {
+>>>>>>> 5e509252dbd5080c9ccb3b379becf9cebed321e1
         name,
         phone,
         email,
@@ -70,6 +74,7 @@ export default function RegisterScreen() {
   };
 
   return (
+<<<<<<< HEAD
     <KeyboardAvoidingView
       style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -80,6 +85,10 @@ export default function RegisterScreen() {
             source={require('../../assets/images/logo.png')}
             style={styles.logo}
           />
+=======
+    <View style={styles.container}>
+      <Image source={require('../../assets/favicon.png')} style={styles.logo} />
+>>>>>>> 5e509252dbd5080c9ccb3b379becf9cebed321e1
 
           <Text style={styles.title}>REGISTER</Text>
 
@@ -267,7 +276,11 @@ const styles = StyleSheet.create({
   loginLink: {
     color: '#FF0000',
     fontWeight: 'bold',
+<<<<<<< HEAD
     marginTop: 6,
     fontSize: 14,
+=======
+    paddingBottom: 30
+>>>>>>> 5e509252dbd5080c9ccb3b379becf9cebed321e1
   },
 });
