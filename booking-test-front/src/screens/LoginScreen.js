@@ -22,7 +22,7 @@ export default function LoginScreen({ navigation }) {
     }
 
     try {
-      await axios.post('http://192.168.221.23:5001/api/users/login', {
+      await axios.post('http://192.168.99.79:5001/api/users/login', {
         email,
         password
       });

@@ -21,7 +21,7 @@ export default function ActiveReservationsScreen() {
       const fetchReservations = async () => {
         try {
           setLoading(true);
-          const response = await fetch('https://192.168.221.23:5001/');
+          const response = await fetch('https://192.168.99.79:5001/');
           const data = await response.json();
           setReservations(data);
         } catch (error) {
@@ -108,6 +108,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
+    paddingTop: 32,
     marginBottom: 20,
   },
   item: {

@@ -10,6 +10,7 @@ import {
   Alert
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function ReservationPage() {
   const route = useRoute();
@@ -45,7 +46,15 @@ export default function ReservationPage() {
   };
 
   return (
+    
     <View style={styles.container}>
+      <View style={styles.header}>
+  <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+    <Ionicons name="arrow-back" size={24} color="white" />
+  </TouchableOpacity>
+  <Text style={styles.title}>Reservation</Text>
+</View>
+
       <Text style={styles.label}>Поле:</Text>
 
       <TouchableOpacity
@@ -107,9 +116,21 @@ export default function ReservationPage() {
 
 const styles = StyleSheet.create({
   container: {
+    paddingTop: 50,
     padding: 20,
     flex: 1,
     backgroundColor: '#fff',
+  },
+  backButton: {
+    position: 'absolute', top: 20, left: 0,
+    backgroundColor: 'rgba(0,0,0,0.6)', padding: 8, borderRadius: 20
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    paddingTop: 30,
+    marginBottom: 20,
+    marginLeft: 50,
   },
   label: {
     fontWeight: 'bold',
@@ -134,7 +155,11 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',
-    marginTop: 20,
+    position: 'absolute',
+    bottom: 50,
+    left: 0,
+    right: 0,
+    marginHorizontal: 20,
   },
   submitButtonText: {
     color: '#FFFBD4',

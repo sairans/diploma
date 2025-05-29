@@ -26,7 +26,7 @@ export default function MainScreen() {
   useEffect(() => {
     const fetchGrounds = async () => {
       try {
-        const res = await axios.get('http://192.168.221.23:5001/api/grounds');
+        const res = await axios.get('http://192.168.99.79:5001/api/grounds');
         setGrounds(res.data.grounds);
       } catch (error) {
         console.error('Ошибка загрузки данных:', error);
@@ -86,7 +86,6 @@ export default function MainScreen() {
             placeholder="Search..."
             placeholderTextColor="#777"
           />
-          <Ionicons name="menu" size={24} color="#555" />
         </View>
 
         <View style={styles.filters}>

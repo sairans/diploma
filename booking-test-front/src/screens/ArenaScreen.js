@@ -63,7 +63,7 @@ export default function ArenaDetailsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1, backgroundColor: '#fff', paddingTop: 50 },
   image: { width: '100%', height: 200 },
   backButton: {
     position: 'absolute', top: 40, left: 20,
