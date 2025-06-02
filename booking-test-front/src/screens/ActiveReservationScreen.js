@@ -25,9 +25,6 @@ export default function ActiveReservationsScreen() {
       const fetchReservations = async () => {
         try {
           setLoading(true);
-<<<<<<< HEAD
-          const response = await fetch('https://192.168.99.79:5001/');
-=======
           const token = await AsyncStorage.getItem('token');
           const response = await fetch(
             `http://192.168.221.11:5001/api/bookings/my`,
@@ -35,7 +32,6 @@ export default function ActiveReservationsScreen() {
               headers: { Authorization: `Bearer ${token}` }
             }
           );
->>>>>>> 5e509252dbd5080c9ccb3b379becf9cebed321e1
           const data = await response.json();
           setReservations(data.bookings);
         } catch (error) {
@@ -168,13 +164,9 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-<<<<<<< HEAD
     fontWeight: 'bold',
     paddingTop: 32,
-    marginBottom: 20,
-=======
-    fontWeight: 'bold'
->>>>>>> 5e509252dbd5080c9ccb3b379becf9cebed321e1
+    marginBottom: 20
   },
   item: {
     padding: 15,

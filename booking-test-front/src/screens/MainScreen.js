@@ -27,11 +27,7 @@ export default function MainScreen() {
   useEffect(() => {
     const fetchGrounds = async () => {
       try {
-<<<<<<< HEAD
-        const res = await axios.get('http://192.168.99.79:5001/api/grounds');
-=======
         const res = await axios.get('http://192.168.221.11:5001/api/grounds');
->>>>>>> 5e509252dbd5080c9ccb3b379becf9cebed321e1
         setGrounds(res.data.grounds);
       } catch (error) {
         console.error('Ошибка загрузки данных:', error);

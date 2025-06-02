@@ -41,11 +41,8 @@
   "devDependencies": {
     "@babel/core": "^7.20.0",
     "@babel/preset-react": "^7.27.1",
-<<<<<<< HEAD
-    "react-native-dotenv": "^3.4.11"
-=======
+    "react-native-dotenv": "^3.4.11",
     "babel-plugin-dotenv": "^0.1.1"
->>>>>>> 5e509252dbd5080c9ccb3b379becf9cebed321e1
   },
   "private": true
 }

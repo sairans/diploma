@@ -86,12 +86,12 @@ export default function ProfileScreen({ navigation }) {
         />
 
         <View style={styles.avatarContainer}>
-  <Image source={user.avatar} style={styles.avatar} />
-  <View style={styles.userInfo}>
-    <Text style={styles.username}>{user.name}</Text>
-    <Text style={styles.phoneNumber}>{user.phone}</Text>
-  </View>
-</View>
+          <Image source={user.avatar} style={styles.avatar} />
+          <View style={styles.userInfo}>
+            <Text style={styles.username}>{user.name}</Text>
+            <Text style={styles.phoneNumber}>{user.phone}</Text>
+          </View>
+        </View>
 
         <View style={styles.menuBlock}>
           <MenuItem icon="credit-card" label="Payment" />
@@ -107,8 +107,10 @@ export default function ProfileScreen({ navigation }) {
           <MenuItem icon="information-outline" label="About the app" />
         </View>
 
-        <TouchableOpacity style={styles.signOutButton}
-        onPress={() => navigation.navigate('Register')}>
+        <TouchableOpacity
+          style={styles.signOutButton}
+          onPress={() => navigation.navigate('Register')}
+        >
           <Icon name="logout" size={22} color="#ff3b30" />
           <Text style={styles.signOutText}>Sign out</Text>
         </TouchableOpacity>
@@ -158,23 +160,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff'
   },
   headerImage: {
-<<<<<<< HEAD
     width: '450%',
     height: 240,
-    resizeMode: 'cover',
-=======
-    width: '100%',
-    height: 140,
     resizeMode: 'cover'
->>>>>>> 5e509252dbd5080c9ccb3b379becf9cebed321e1
   },
   avatarContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-<<<<<<< HEAD
     padding: 16,
     position: 'relative',
-    top: -60,
+    top: -60
   },
   avatar: {
     width: 150,
@@ -182,39 +177,19 @@ const styles = StyleSheet.create({
     borderRadius: 100,
     marginRight: 12,
     position: 'relative',
-    top: -30,
+    top: -30
   },
   userInfo: {
-    flexDirection: 'column',
+    flexDirection: 'column'
   },
   username: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#000',
+    color: '#000'
   },
   phoneNumber: {
     fontSize: 16,
-    color: '#555',
-=======
-    marginTop: -40,
-    marginBottom: 10
-  },
-  avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    borderWidth: 2,
-    borderColor: '#fff'
-  },
-  username: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginTop: 6
-  },
-  phoneNumber: {
-    fontSize: 14,
-    color: '#777'
->>>>>>> 5e509252dbd5080c9ccb3b379becf9cebed321e1
+    color: '#555'
   },
   menuBlock: {
     backgroundColor: '#f9f9f9',

@@ -50,11 +50,7 @@ export default function RegisterScreen() {
     }
 
     try {
-<<<<<<< HEAD
-      await axios.post('http://192.168.14.23:5001/api/users/register', {
-=======
       await axios.post('http://192.168.221.11:5001/api/users/register', {
->>>>>>> 5e509252dbd5080c9ccb3b379becf9cebed321e1
         name,
         phone,
         email,
@@ -74,7 +70,6 @@ export default function RegisterScreen() {
   };
 
   return (
-<<<<<<< HEAD
     <KeyboardAvoidingView
       style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -85,10 +80,6 @@ export default function RegisterScreen() {
             source={require('../../assets/images/logo.png')}
             style={styles.logo}
           />
-=======
-    <View style={styles.container}>
-      <Image source={require('../../assets/favicon.png')} style={styles.logo} />
->>>>>>> 5e509252dbd5080c9ccb3b379becf9cebed321e1
 
           <Text style={styles.title}>REGISTER</Text>
 
@@ -171,7 +162,10 @@ export default function RegisterScreen() {
             <Text style={styles.link}>User Agreement</Text>.
           </Text>
 
-          <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
+          <TouchableOpacity
+            style={styles.registerButton}
+            onPress={handleRegister}
+          >
             <Text style={styles.registerText}>Register</Text>
           </TouchableOpacity>
 
@@ -190,33 +184,30 @@ export default function RegisterScreen() {
   );
 }
 
-
-
-
 const styles = StyleSheet.create({
   scrollContainer: {
     flexGrow: 1,
     backgroundColor: '#1d1f1e',
-    justifyContent: 'center',
+    justifyContent: 'center'
   },
   container: {
     paddingHorizontal: 24,
     paddingBottom: 40,
-    alignItems: 'center',
+    alignItems: 'center'
   },
   logo: {
     width: 180,
     height: 180,
     resizeMode: 'contain',
     marginBottom: 20,
-    marginTop: 40,
+    marginTop: 40
   },
   title: {
     fontSize: 32,
     color: '#FFFBD4',
     marginBottom: 24,
     fontFamily: 'CinzelDecorative-Regular',
-    textAlign: 'center',
+    textAlign: 'center'
   },
   inputContainer: {
     flexDirection: 'row',
@@ -226,34 +217,34 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 8,
-    marginBottom: 16,
+    marginBottom: 16
   },
   input: {
     flex: 1,
     fontSize: 16,
     color: '#FFFBD4',
-    paddingVertical: 10,
+    paddingVertical: 10
   },
   flag: {
     fontSize: 18,
     marginRight: 8,
-    color: '#FFFBD4',
+    color: '#FFFBD4'
   },
   togglePassword: {
     fontSize: 18,
     marginLeft: 8,
-    color: '#FFFBD4',
+    color: '#FFFBD4'
   },
   terms: {
     color: '#FFFBD4',
     fontSize: 12,
     textAlign: 'center',
     marginVertical: 16,
-    paddingHorizontal: 12,
+    paddingHorizontal: 12
   },
   link: {
     color: '#FF0000',
-    textDecorationLine: 'underline',
+    textDecorationLine: 'underline'
   },
   registerButton: {
     backgroundColor: '#FFFBD4',
@@ -261,26 +252,22 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     width: '100%',
     alignItems: 'center',
-    marginTop: 12,
+    marginTop: 12
   },
   registerText: {
     color: '#1d1f1e',
     fontWeight: 'bold',
-    fontSize: 16,
+    fontSize: 16
   },
   loginText: {
     color: '#FFFBD4',
     marginTop: 20,
-    fontSize: 14,
+    fontSize: 14
   },
   loginLink: {
     color: '#FF0000',
     fontWeight: 'bold',
-<<<<<<< HEAD
     marginTop: 6,
-    fontSize: 14,
-=======
-    paddingBottom: 30
->>>>>>> 5e509252dbd5080c9ccb3b379becf9cebed321e1
-  },
+    fontSize: 14
+  }
 });

@@ -23,12 +23,6 @@ export default function LoginScreen({ navigation }) {
     }
 
     try {
-<<<<<<< HEAD
-      await axios.post('http://192.168.99.79:5001/api/users/login', {
-        email,
-        password
-      });
-=======
       const response = await axios.post(
         'http://192.168.221.11:5001/api/users/login',
         {
@@ -38,7 +32,6 @@ export default function LoginScreen({ navigation }) {
       );
 
       await AsyncStorage.setItem('token', response.data.token);
->>>>>>> 5e509252dbd5080c9ccb3b379becf9cebed321e1
 
       Alert.alert('Успешно', 'Вы вошли в систему');
       navigation.navigate('Main');

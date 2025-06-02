@@ -14,12 +14,8 @@ import {
 } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { useRoute, useNavigation } from '@react-navigation/native';
-<<<<<<< HEAD
-import { Ionicons } from '@expo/vector-icons';
-=======
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
->>>>>>> 5e509252dbd5080c9ccb3b379becf9cebed321e1
 
 export default function ReservationPage() {
   const route = useRoute();
@@ -76,102 +72,97 @@ export default function ReservationPage() {
   };
 
   return (
-<<<<<<< HEAD
-    
     <View style={styles.container}>
       <View style={styles.header}>
-  <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-    <Ionicons name="arrow-back" size={24} color="white" />
-  </TouchableOpacity>
-  <Text style={styles.title}>Reservation</Text>
-</View>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Ionicons name="arrow-back" size={24} color="white" />
+        </TouchableOpacity>
+        <Text style={styles.title}>Reservation</Text>
+      </View>
 
       <Text style={styles.label}>Поле:</Text>
-=======
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.label}>Поле:</Text>
->>>>>>> 5e509252dbd5080c9ccb3b379becf9cebed321e1
 
-        <TouchableOpacity
-          style={styles.selector}
-          onPress={() => setModalVisible(true)}
-        >
-          <Text>{fieldNumber ? `Поле №${fieldNumber}` : 'Выберите поле'}</Text>
-        </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.selector}
+        onPress={() => setModalVisible(true)}
+      >
+        <Text>{fieldNumber ? `Поле №${fieldNumber}` : 'Выберите поле'}</Text>
+      </TouchableOpacity>
 
-        <Modal visible={modalVisible} animationType="slide">
-          <View style={styles.modalContent}>
-            <Text style={styles.label}>Выберите поле:</Text>
-            <FlatList
-              data={fields}
-              keyExtractor={(item) => item._id}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.option}
-                  onPress={() => {
-                    setFieldNumber(item.number);
-                    setModalVisible(false);
-                  }}
-                >
-                  <Text>Поле №{item.number}</Text>
-                </TouchableOpacity>
-              )}
-            />
-            <TouchableOpacity
-              style={styles.cancelButton}
-              onPress={() => setModalVisible(false)}
-            >
-              <Text style={{ color: 'white' }}>Отмена</Text>
-            </TouchableOpacity>
-          </View>
-        </Modal>
-
-        <Text style={styles.label}>Дата:</Text>
-        <Calendar
-          onDayPress={(day) => setDate(day.dateString)}
-          markedDates={{ [date]: { selected: true, selectedColor: '#1d1f1e' } }}
-          theme={{
-            backgroundColor: '#ffffff',
-            calendarBackground: '#ffffff',
-            selectedDayBackgroundColor: '#1d1f1e',
-            selectedDayTextColor: '#FFFBD4',
-            todayTextColor: '#d9534f',
-            arrowColor: '#1d1f1e'
-          }}
-          style={styles.calendar}
-        />
-
-        <Text style={styles.label}>Время:</Text>
-        <View style={styles.slotsContainer}>
-          {[
-            '09:00–10:00',
-            '10:00–11:00',
-            '11:00–12:00',
-            '12:00–13:00',
-            '13:00–14:00',
-            '14:00–15:00',
-            '15:00–16:00',
-            '16:00–17:00'
-          ].map((slot) => (
-            <TouchableOpacity
-              key={slot}
-              onPress={() => setTimeslot(slot)}
-              style={[
-                styles.slotButton,
-                timeslot === slot && styles.selectedSlot
-              ]}
-            >
-              <Text style={styles.slotText}>{slot}</Text>
-            </TouchableOpacity>
-          ))}
+      <Modal visible={modalVisible} animationType="slide">
+        <View style={styles.modalContent}>
+          <Text style={styles.label}>Выберите поле:</Text>
+          <FlatList
+            data={fields}
+            keyExtractor={(item) => item._id}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={styles.option}
+                onPress={() => {
+                  setFieldNumber(item.number);
+                  setModalVisible(false);
+                }}
+              >
+                <Text>Поле №{item.number}</Text>
+              </TouchableOpacity>
+            )}
+          />
+          <TouchableOpacity
+            style={styles.cancelButton}
+            onPress={() => setModalVisible(false)}
+          >
+            <Text style={{ color: 'white' }}>Отмена</Text>
+          </TouchableOpacity>
         </View>
+      </Modal>
 
-        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-          <Text style={styles.submitButtonText}>Подтвердить бронирование</Text>
-        </TouchableOpacity>
-      </ScrollView>
-    </SafeAreaView>
+      <Text style={styles.label}>Дата:</Text>
+      <Calendar
+        onDayPress={(day) => setDate(day.dateString)}
+        markedDates={{ [date]: { selected: true, selectedColor: '#1d1f1e' } }}
+        theme={{
+          backgroundColor: '#ffffff',
+          calendarBackground: '#ffffff',
+          selectedDayBackgroundColor: '#1d1f1e',
+          selectedDayTextColor: '#FFFBD4',
+          todayTextColor: '#d9534f',
+          arrowColor: '#1d1f1e'
+        }}
+        style={styles.calendar}
+      />
+
+      <Text style={styles.label}>Время:</Text>
+      <View style={styles.slotsContainer}>
+        {[
+          '09:00–10:00',
+          '10:00–11:00',
+          '11:00–12:00',
+          '12:00–13:00',
+          '13:00–14:00',
+          '14:00–15:00',
+          '15:00–16:00',
+          '16:00–17:00'
+        ].map((slot) => (
+          <TouchableOpacity
+            key={slot}
+            onPress={() => setTimeslot(slot)}
+            style={[
+              styles.slotButton,
+              timeslot === slot && styles.selectedSlot
+            ]}
+          >
+            <Text style={styles.slotText}>{slot}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+        <Text style={styles.submitButtonText}>Подтвердить бронирование</Text>
+      </TouchableOpacity>
+    </View>
   );
 }
 
@@ -188,15 +179,19 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff'
   },
   backButton: {
-    position: 'absolute', top: 20, left: 0,
-    backgroundColor: 'rgba(0,0,0,0.6)', padding: 8, borderRadius: 20
+    position: 'absolute',
+    top: 20,
+    left: 0,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    padding: 8,
+    borderRadius: 20
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     paddingTop: 30,
     marginBottom: 20,
-    marginLeft: 50,
+    marginLeft: 50
   },
   label: {
     fontWeight: 'bold',
@@ -244,15 +239,11 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',
-<<<<<<< HEAD
     position: 'absolute',
     bottom: 50,
     left: 0,
     right: 0,
-    marginHorizontal: 20,
-=======
-    marginTop: 20
->>>>>>> 5e509252dbd5080c9ccb3b379becf9cebed321e1
+    marginHorizontal: 20
   },
   submitButtonText: {
     color: '#FFFBD4',
