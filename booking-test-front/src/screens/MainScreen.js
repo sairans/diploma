@@ -2,18 +2,17 @@ import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
-  TextInput,
+  FlatList,
+  Image,
   TouchableOpacity,
   StyleSheet,
-  FlatList,
-  Image as RNImage,
   Animated,
+  TextInput,
   ActivityIndicator
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import MapView, { Marker } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
-import { Image } from 'expo-image';
 import axios from 'axios';
 import exampleImage from '../../assets/images/icon.png';
 
@@ -120,15 +119,21 @@ export default function MainScreen() {
                     navigation.navigate('ArenaDetails', { venue: item })
                   }
                 >
-                  {/* <Image
-                    source={
-                      item.images && item.images.length > 0
-                        ? item.images[0]
-                        : undefined
-                    }
-                    style={styles.venueImage}
-                    contentFit="cover"
-                  /> */}
+                  {item.images?.[0] ? (
+                    <Image
+                      source={
+                        item.images?.[0]
+                          ? { uri: item.images[0] }
+                          : exampleImage
+                      }
+                      style={styles.venueImage}
+                      contentFit="cover" // если используешь expo-image, иначе убери
+                    />
+                  ) : (
+                    <View style={[styles.venueImage, styles.placeholder]}>
+                      <Text>Нет фото</Text>
+                    </View>
+                  )}
                   <View style={styles.cardDetails}>
                     <Text style={styles.venueName}>{item.name}</Text>
                     <Text style={styles.venueInfo}>
