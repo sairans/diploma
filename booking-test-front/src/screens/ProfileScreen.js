@@ -53,7 +53,7 @@ export default function ProfileScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 80 }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
         <Image
           source={require('../../assets/images/logo.png')}
           style={styles.headerImage}
@@ -89,41 +89,6 @@ export default function ProfileScreen({ navigation }) {
           <Text style={styles.signOutText}>Sign out</Text>
         </TouchableOpacity>
       </ScrollView>
-
-      {/* Нижняя навигация */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity
-          style={styles.navButton}
-          onPress={() => navigation.navigate('Main')}
-        >
-          <Ionicons name="home" size={24} color="#1d1f1e" />
-          <Text style={styles.navText}>Home</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.navButton}
-          onPress={() => navigation.navigate('ActiveReservationScreen')}
-        >
-          <Ionicons name="calendar" size={24} color="#1d1f1e" />
-          <Text style={styles.navText}>Reservations</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.navButton}
-          onPress={() => console.log('Posts')}
-        >
-          <Ionicons name="newspaper" size={24} color="#1d1f1e" />
-          <Text style={styles.navText}>Posts</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.navButton}
-          onPress={() => navigation.navigate('ProfileScreen', { user })}
-        >
-          <Ionicons name="person" size={24} color="#1d1f1e" />
-          <Text style={styles.navText}>Profile</Text>
-        </TouchableOpacity>
-      </View>
     </View>
   );
 }
@@ -213,27 +178,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#ff3b30',
     fontWeight: '600'
-  },
-  bottomNav: {
-    paddingBottom: 32,
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    backgroundColor: '#F5F5F5',
-    paddingVertical: 12,
-    borderRadius: 0,
-    elevation: 5
-  },
-  navButton: {
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  navText: {
-    fontSize: 12,
-    marginTop: 4,
-    color: '#1d1f1e'
   }
 });

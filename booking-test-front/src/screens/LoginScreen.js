@@ -34,7 +34,7 @@ export default function LoginScreen({ navigation }) {
       await AsyncStorage.setItem('token', response.data.token);
 
       Alert.alert('Успешно', 'Вы вошли в систему');
-      navigation.navigate('Main');
+      navigation.navigate('MainTabs', { screen: 'Main' });
     } catch (err) {
       Alert.alert('Ошибка', err.response?.data?.message || 'Ошибка при входе');
     }

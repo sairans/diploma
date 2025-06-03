@@ -7,7 +7,8 @@ import {
   ActivityIndicator,
   Alert,
   TouchableOpacity,
-  Platform
+  Platform,
+  Image
 } from 'react-native';
 import { SafeAreaView } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -59,30 +60,35 @@ export default function ActiveReservationsScreen() {
   };
 
   const handleEdit = (item) => {
-    navigation.navigate('BookingEditScreen', { booking: item });
+    navigation.navigate('EditReservationPage', {
+      screen: 'EditReservationPage',
+      params: { bookingId: item._id }
+    });
   };
 
   const renderItem = ({ item }) => (
-    <View style={styles.item}>
-      <Text style={styles.field}>Площадка: {item.ground?.name || '—'}</Text>
-      <Text>Поле №: {item.fieldNumber}</Text>
-      <Text>Дата: {new Date(item.date).toLocaleDateString()}</Text>
-      <Text>
-        Время:{' '}
-        {Array.isArray(item.timeSlot)
-          ? item.timeSlot.join(', ')
-          : item.timeSlot}
-      </Text>
-      <View style={{ flexDirection: 'row', marginTop: 10 }}>
-        <TouchableOpacity
-          style={{ marginRight: 10 }}
-          onPress={() => handleEdit(item)}
-        >
-          <Text style={{ color: 'blue' }}>Изменить</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => handleDelete(item._id)}>
-          <Text style={{ color: 'red' }}>Удалить</Text>
-        </TouchableOpacity>
+    <View style={styles.card}>
+      {item.ground?.images?.[0] && (
+        <Image source={{ uri: item.ground.images[0] }} style={styles.image} />
+      )}
+      <View style={styles.info}>
+        <Text style={styles.field}>⚽ {item.ground?.name || '—'}</Text>
+        <Text style={styles.detail}>Duration: 2 hours</Text>
+        <Text style={styles.detail}>₸ 50,000 тг</Text>
+        <View style={styles.buttonRow}>
+          <TouchableOpacity
+            onPress={() => handleDelete(item._id)}
+            style={styles.cancelButton}
+          >
+            <Text style={{ color: 'white' }}>Cancel</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => handleEdit(item)}
+            style={styles.editButton}
+          >
+            <Text>Edit</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
@@ -96,64 +102,28 @@ export default function ActiveReservationsScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
-        <Text
-          style={[
-            styles.title,
-            { marginTop: Platform.OS === 'android' ? 20 : 50 }
-          ]}
-        >
-          Активные
-        </Text>
-        <FlatList
-          data={reservations}
-          keyExtractor={(item) => item._id}
-          renderItem={renderItem}
-        />
-
-        <View style={styles.bottomNav}>
-          <TouchableOpacity
-            style={styles.navButton}
-            onPress={() => navigation.navigate('Main')}
-          >
-            <Ionicons name="home" size={24} color="#1d1f1e" />
-            <Text style={styles.navText}>Home</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.navButton}
-            onPress={() => setShowReservations(!showReservations)}
-          >
-            <Ionicons name="calendar" size={24} color="#1d1f1e" />
-            <Text style={styles.navText}>Reservations</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.navButton}
-            onPress={() => console.log('Posts')}
-          >
-            <Ionicons name="newspaper" size={24} color="#1d1f1e" />
-            <Text style={styles.navText}>Posts</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.navButton}
-            onPress={() => navigation.navigate('ProfileScreen')} // заменили
-          >
-            <Ionicons name="person" size={24} color="#1d1f1e" />
-            <Text style={styles.navText}>Profile</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </SafeAreaView>
+    <View style={styles.container}>
+      <Text
+        style={[
+          styles.title,
+          { marginTop: Platform.OS === 'android' ? 10 : 50 }
+        ]}
+      >
+        Активные
+      </Text>
+      <FlatList
+        data={reservations}
+        keyExtractor={(item) => item._id}
+        renderItem={renderItem}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    paddingTop: Platform.OS === 'android' ? 30 : 0,
+    paddingTop: Platform.OS === 'android' ? 20 : 0,
     backgroundColor: '#fff'
   },
   container: {
@@ -168,34 +138,58 @@ const styles = StyleSheet.create({
     paddingTop: 32,
     marginBottom: 20
   },
-  item: {
-    padding: 15,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
+  card: {
+    backgroundColor: '#f9f9f9',
+    borderRadius: 16,
+    padding: 12,
+    marginBottom: 20,
+    marginHorizontal: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2
+  },
+  image: {
+    width: '100%',
+    height: 160,
+    borderRadius: 12,
     marginBottom: 10
   },
+  info: {
+    paddingHorizontal: 6
+  },
   field: {
-    fontWeight: 'bold'
+    fontWeight: 'bold',
+    fontSize: 16,
+    marginBottom: 4
+  },
+  detail: {
+    fontSize: 14,
+    color: '#555',
+    marginBottom: 2
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    marginTop: 12,
+    justifyContent: 'flex-start'
+  },
+  cancelButton: {
+    backgroundColor: '#F87171',
+    paddingHorizontal: 18,
+    paddingVertical: 8,
+    borderRadius: 8,
+    marginRight: 12
+  },
+  editButton: {
+    backgroundColor: '#FEF08A',
+    paddingHorizontal: 18,
+    paddingVertical: 8,
+    borderRadius: 8
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center'
-  },
-  bottomNav: {
-    paddingBottom: 32,
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    backgroundColor: '#F5F5F5',
-    paddingVertical: 12,
-    borderRadius: 0,
-    elevation: 5
-  },
-  navButton: { alignItems: 'center' },
-  navText: { fontSize: 12, color: '#000', marginTop: 4 }
+  }
 });

@@ -1,5 +1,7 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { Ionicons } from '@expo/vector-icons';
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 import MainScreen from '../screens/MainScreen';
@@ -7,22 +9,46 @@ import ArenaDetailsScreen from '../screens/ArenaScreen';
 import ReservationScreen from '../screens/ReservationScreen';
 import ActiveReservationScreen from '../screens/ActiveReservationScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import EditReservationPage from '../screens/EditReservationPage';
 
 const Stack = createStackNavigator();
+const Tab = createBottomTabNavigator();
+
+function MainTabNavigator() {
+  return (
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        headerShown: false,
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName;
+          if (route.name === 'Main') iconName = 'home';
+          else if (route.name === 'Reservations') iconName = 'calendar';
+          else if (route.name === 'Profile') iconName = 'person';
+          return <Ionicons name={iconName} size={size} color={color} />;
+        },
+        tabBarActiveTintColor: '#1d1f1e',
+        tabBarInactiveTintColor: '#888'
+      })}
+    >
+      <Tab.Screen name="Main" component={MainScreen} />
+      <Tab.Screen name="Reservations" component={ActiveReservationScreen} />
+      <Tab.Screen name="Profile" component={ProfileScreen} />
+    </Tab.Navigator>
+  );
+}
 
 export default function AppNavigator() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Register" component={RegisterScreen} />
-      <Stack.Screen name="Main" component={MainScreen} />
+      <Stack.Screen name="MainTabs" component={MainTabNavigator} />
       <Stack.Screen name="ArenaDetails" component={ArenaDetailsScreen} />
       <Stack.Screen name="ReservationScreen" component={ReservationScreen} />
       <Stack.Screen
-        name="ActiveReservationScreen"
-        component={ActiveReservationScreen}
+        name="EditReservationPage"
+        component={EditReservationPage}
       />
-      <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
     </Stack.Navigator>
   );
 }

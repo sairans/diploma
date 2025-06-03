@@ -8,9 +8,10 @@ import {
   StyleSheet,
   Animated,
   TextInput,
-  ActivityIndicator
+  ActivityIndicator,
+  PanResponder
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import MapView, { Marker } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
@@ -22,6 +23,17 @@ export default function MainScreen() {
   const [selectedType, setSelectedType] = useState(null);
   const [heightAnim] = useState(new Animated.Value(150));
   const [loading, setLoading] = useState(true);
+
+  // useFocusEffect(
+  //   React.useCallback(() => {
+  //     const parent = navigation.getParent();
+  //     parent?.setOptions({ tabBarStyle: { display: 'none' } });
+
+  //     return () => {
+  //       parent?.setOptions({ tabBarStyle: undefined });
+  //     };
+  //   }, [navigation])
+  // );
 
   useEffect(() => {
     const fetchGrounds = async () => {
@@ -37,6 +49,35 @@ export default function MainScreen() {
 
     fetchGrounds();
   }, []);
+
+  // PanResponder for swipe up/down on panel
+  const panResponder = PanResponder.create({
+    onMoveShouldSetPanResponder: (_, gestureState) => {
+      return Math.abs(gestureState.dy) > 10;
+    },
+    onPanResponderMove: (_, gestureState) => {
+      const newHeight = Math.max(
+        150,
+        Math.min(520, heightAnim._value - gestureState.dy)
+      );
+      heightAnim.setValue(newHeight);
+    },
+    onPanResponderRelease: (_, gestureState) => {
+      if (gestureState.dy < -50) {
+        Animated.timing(heightAnim, {
+          toValue: 520,
+          duration: 200,
+          useNativeDriver: false
+        }).start();
+      } else if (gestureState.dy > 50) {
+        Animated.timing(heightAnim, {
+          toValue: 150,
+          duration: 200,
+          useNativeDriver: false
+        }).start();
+      }
+    }
+  });
 
   const handleSportSelect = (type) => {
     const isSelected = selectedType === type;
@@ -56,6 +97,14 @@ export default function MainScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Top bar with icons */}
+      <View style={styles.topBar}>
+        <View style={styles.cityContainer}>
+          <Ionicons name="location-sharp" size={18} color="#000" />
+          <Text style={styles.cityText}>Astana</Text>
+        </View>
+        <Ionicons name="notifications-outline" size={24} color="#000" />
+      </View>
       <MapView
         style={styles.map}
         initialRegion={{
@@ -79,6 +128,7 @@ export default function MainScreen() {
       </MapView>
 
       <Animated.View
+        {...panResponder.panHandlers}
         style={[styles.searchAndFilterContainer, { height: heightAnim }]}
       >
         <View style={styles.searchContainer}>
@@ -108,84 +158,42 @@ export default function MainScreen() {
         {loading ? (
           <ActivityIndicator size="large" color="#000" />
         ) : (
-          selectedType && (
-            <FlatList
-              data={filteredGrounds}
-              keyExtractor={(item) => item._id}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.card}
-                  onPress={() =>
-                    navigation.navigate('ArenaDetails', { venue: item })
-                  }
-                >
-                  {item.images?.[0] ? (
-                    <Image
-                      source={
-                        item.images?.[0]
-                          ? { uri: item.images[0] }
-                          : exampleImage
-                      }
-                      style={styles.venueImage}
-                      contentFit="cover" // если используешь expo-image, иначе убери
-                    />
-                  ) : (
-                    <View style={[styles.venueImage, styles.placeholder]}>
-                      <Text>Нет фото</Text>
-                    </View>
-                  )}
-                  <View style={styles.cardDetails}>
-                    <Text style={styles.venueName}>{item.name}</Text>
-                    <Text style={styles.venueInfo}>
-                      Address: {item.address}
-                    </Text>
-                    <Text style={styles.venueInfo}>
-                      Price: {item.pricePerHour} тг/час
-                    </Text>
-                    <Text style={styles.venueInfo}>
-                      Available: {item.available ? 'Yes' : 'No'}
-                    </Text>
+          <FlatList
+            data={selectedType ? filteredGrounds : grounds}
+            keyExtractor={(item) => item._id}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={styles.card}
+                onPress={() =>
+                  navigation.navigate('ArenaDetails', { venue: item })
+                }
+              >
+                {item.images?.[0] ? (
+                  <Image
+                    source={{ uri: item.images[0] }}
+                    style={styles.venueImage}
+                    contentFit="cover"
+                  />
+                ) : (
+                  <View style={[styles.venueImage, styles.placeholder]}>
+                    <Text>Нет фото</Text>
                   </View>
-                </TouchableOpacity>
-              )}
-            />
-          )
+                )}
+                <View style={styles.cardDetails}>
+                  <Text style={styles.venueName}>{item.name}</Text>
+                  <Text style={styles.venueInfo}>Address: {item.address}</Text>
+                  <Text style={styles.venueInfo}>
+                    Price: {item.pricePerHour} тг/час
+                  </Text>
+                  <Text style={styles.venueInfo}>
+                    Available: {item.available ? 'Yes' : 'No'}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            )}
+          />
         )}
       </Animated.View>
-
-      <View style={styles.bottomNav}>
-        <TouchableOpacity
-          style={styles.navButton}
-          onPress={() => navigation.navigate('Main')}
-        >
-          <Ionicons name="home" size={24} color="#1d1f1e" />
-          <Text style={styles.navText}>Home</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.navButton}
-          onPress={() => navigation.navigate('ActiveReservationScreen')}
-        >
-          <Ionicons name="calendar" size={24} color="#1d1f1e" />
-          <Text style={styles.navText}>Reservations</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.navButton}
-          onPress={() => console.log('Posts')}
-        >
-          <Ionicons name="newspaper" size={24} color="#1d1f1e" />
-          <Text style={styles.navText}>Posts</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.navButton}
-          onPress={() => navigation.navigate('ProfileScreen')} // заменили
-        >
-          <Ionicons name="person" size={24} color="#1d1f1e" />
-          <Text style={styles.navText}>Profile</Text>
-        </TouchableOpacity>
-      </View>
     </View>
   );
 }
@@ -193,16 +201,43 @@ export default function MainScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F5F5F5' },
   map: { height: '79%' },
+  topBar: {
+    position: 'absolute',
+    top: 50,
+    left: 20,
+    right: 20,
+    zIndex: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#ffffffcc',
+    padding: 10,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 4
+  },
+  cityContainer: {
+    flexDirection: 'row',
+    alignItems: 'center'
+  },
+  cityText: {
+    fontSize: 16,
+    marginLeft: 6,
+    fontWeight: '500'
+  },
   searchAndFilterContainer: {
     position: 'absolute',
-    bottom: 65,
+    bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#dadada',
-    borderRadius: 15,
-    paddingHorizontal: 10,
+    backgroundColor: '#f8f8f8',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingHorizontal: 16,
     paddingVertical: 10,
-    elevation: 5
+    elevation: 10
   },
   searchContainer: {
     flexDirection: 'row',
@@ -217,7 +252,8 @@ const styles = StyleSheet.create({
   searchInput: { flex: 1, fontSize: 16 },
   filters: {
     flexDirection: 'row',
-    justifyContent: 'space-around'
+    justifyContent: 'space-around',
+    borderRadius: 10
   },
   filterButton: {
     backgroundColor: '#f1f1f1',
@@ -245,20 +281,5 @@ const styles = StyleSheet.create({
   },
   cardDetails: { flex: 1 },
   venueName: { fontSize: 16, fontWeight: 'bold' },
-  venueInfo: { fontSize: 14, color: '#555' },
-  bottomNav: {
-    paddingBottom: 32,
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    backgroundColor: '#F5F5F5',
-    paddingVertical: 12,
-    borderRadius: 0,
-    elevation: 5
-  },
-  navButton: { alignItems: 'center' },
-  navText: { fontSize: 12, color: '#000', marginTop: 4 }
+  venueInfo: { fontSize: 14, color: '#555' }
 });

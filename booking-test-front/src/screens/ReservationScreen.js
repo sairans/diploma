@@ -27,6 +27,15 @@ export default function ReservationPage() {
   const [date, setDate] = useState('');
   const [timeslot, setTimeslot] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
+  const [step, setStep] = useState(0);
+
+  const today = new Date().toISOString().split('T')[0];
+  const isPastTime = (slot) => {
+    if (date !== today) return false;
+    const nowHour = new Date().getHours();
+    const slotHour = parseInt(slot.split(':')[0]);
+    return slotHour <= nowHour;
+  };
 
   const handleSubmit = async () => {
     if (!groundId || !date || !timeslot || !fieldNumber) {
@@ -59,7 +68,9 @@ export default function ReservationPage() {
           {
             text: 'ОК',
             onPress: () => {
-              navigation.navigate('ActiveReservationScreen');
+              navigation.navigate('Reservations', {
+                screen: 'ActiveReservationScreen'
+              });
             }
           }
         ]
@@ -76,93 +87,121 @@ export default function ReservationPage() {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
+          onPress={() => (step === 0 ? navigation.goBack() : setStep(step - 1))}
         >
-          <Ionicons name="arrow-back" size={24} color="white" />
+          <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
         <Text style={styles.title}>Reservation</Text>
       </View>
 
-      <Text style={styles.label}>Поле:</Text>
+      <View style={styles.steps}>
+        {['Select field', 'Select date', 'Details'].map((label, i) => (
+          <View key={i} style={styles.step}>
+            <Text style={[styles.stepText, step === i && styles.activeStep]}>
+              {label}
+            </Text>
+            {i < 2 && <Text style={styles.stepText}>{'>'}</Text>}
+          </View>
+        ))}
+      </View>
 
-      <TouchableOpacity
-        style={styles.selector}
-        onPress={() => setModalVisible(true)}
-      >
-        <Text>{fieldNumber ? `Поле №${fieldNumber}` : 'Выберите поле'}</Text>
-      </TouchableOpacity>
-
-      <Modal visible={modalVisible} animationType="slide">
-        <View style={styles.modalContent}>
-          <Text style={styles.label}>Выберите поле:</Text>
+      {step === 0 && (
+        <>
+          <Text style={styles.label}>Select a field:</Text>
           <FlatList
             data={fields}
             keyExtractor={(item) => item._id}
             renderItem={({ item }) => (
               <TouchableOpacity
-                style={styles.option}
-                onPress={() => {
-                  setFieldNumber(item.number);
-                  setModalVisible(false);
-                }}
+                style={[
+                  styles.selector,
+                  fieldNumber === item.number && styles.selectedSlot
+                ]}
+                onPress={() => setFieldNumber(item.number)}
               >
-                <Text>Поле №{item.number}</Text>
+                <Text>Field #{item.number}</Text>
               </TouchableOpacity>
             )}
           />
           <TouchableOpacity
-            style={styles.cancelButton}
-            onPress={() => setModalVisible(false)}
+            style={styles.submitButton}
+            onPress={() => setStep(1)}
           >
-            <Text style={{ color: 'white' }}>Отмена</Text>
+            <Text style={styles.submitButtonText}>Next</Text>
+          </TouchableOpacity>
+        </>
+      )}
+
+      {step === 1 && (
+        <>
+          <Calendar
+            minDate={today}
+            onDayPress={(day) => setDate(day.dateString)}
+            markedDates={{
+              [date]: { selected: true, selectedColor: '#1d1f1e' }
+            }}
+            theme={{
+              selectedDayBackgroundColor: '#1d1f1e',
+              selectedDayTextColor: '#FFFBD4'
+            }}
+            style={styles.calendar}
+          />
+          <Text style={styles.label}>Select time:</Text>
+          <View style={styles.slotsContainer}>
+            {[
+              '09:00–10:00',
+              '10:00–11:00',
+              '11:00–12:00',
+              '12:00–13:00',
+              '13:00–14:00',
+              '14:00–15:00',
+              '15:00–16:00',
+              '16:00–17:00'
+            ].map((slot) => {
+              const disabled = isPastTime(slot);
+              return (
+                <TouchableOpacity
+                  key={slot}
+                  disabled={disabled}
+                  onPress={() => setTimeslot(slot)}
+                  style={[
+                    styles.slotButton,
+                    timeslot === slot && styles.selectedSlot,
+                    disabled && { backgroundColor: '#eee' }
+                  ]}
+                >
+                  <Text
+                    style={[styles.slotText, disabled && { color: '#aaa' }]}
+                  >
+                    {slot}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+          <TouchableOpacity
+            style={styles.submitButton}
+            onPress={() => setStep(2)}
+          >
+            <Text style={styles.submitButtonText}>Next</Text>
+          </TouchableOpacity>
+        </>
+      )}
+
+      {step === 2 && (
+        <View>
+          <Text style={styles.label}>Reservation Details</Text>
+          <Text style={styles.text}>Arena ID: {groundId}</Text>
+          <Text style={styles.text}>Field: #{fieldNumber}</Text>
+          <Text style={styles.text}>Date: {date}</Text>
+          <Text style={styles.text}>Time: {timeslot}</Text>
+          <Text style={styles.text}>Duration: 1 hour</Text>
+          <Text style={styles.text}>Total: 50,000 тг</Text>
+          <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+            <Text style={styles.submitButtonText}>Make reservation</Text>
           </TouchableOpacity>
         </View>
-      </Modal>
-
-      <Text style={styles.label}>Дата:</Text>
-      <Calendar
-        onDayPress={(day) => setDate(day.dateString)}
-        markedDates={{ [date]: { selected: true, selectedColor: '#1d1f1e' } }}
-        theme={{
-          backgroundColor: '#ffffff',
-          calendarBackground: '#ffffff',
-          selectedDayBackgroundColor: '#1d1f1e',
-          selectedDayTextColor: '#FFFBD4',
-          todayTextColor: '#d9534f',
-          arrowColor: '#1d1f1e'
-        }}
-        style={styles.calendar}
-      />
-
-      <Text style={styles.label}>Время:</Text>
-      <View style={styles.slotsContainer}>
-        {[
-          '09:00–10:00',
-          '10:00–11:00',
-          '11:00–12:00',
-          '12:00–13:00',
-          '13:00–14:00',
-          '14:00–15:00',
-          '15:00–16:00',
-          '16:00–17:00'
-        ].map((slot) => (
-          <TouchableOpacity
-            key={slot}
-            onPress={() => setTimeslot(slot)}
-            style={[
-              styles.slotButton,
-              timeslot === slot && styles.selectedSlot
-            ]}
-          >
-            <Text style={styles.slotText}>{slot}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-        <Text style={styles.submitButtonText}>Подтвердить бронирование</Text>
-      </TouchableOpacity>
+      )}
     </View>
   );
 }
@@ -236,18 +275,14 @@ const styles = StyleSheet.create({
     marginBottom: 15
   },
   submitButton: {
-    backgroundColor: '#1d1f1e',
+    backgroundColor: '#FFD700',
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',
-    position: 'absolute',
-    bottom: 50,
-    left: 0,
-    right: 0,
-    marginHorizontal: 20
+    marginTop: 10
   },
   submitButtonText: {
-    color: '#FFFBD4',
+    color: '#000',
     fontWeight: 'bold'
   },
   modalContent: {
@@ -266,5 +301,12 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 8,
     alignItems: 'center'
+  },
+  steps: { flexDirection: 'row', justifyContent: 'center', marginVertical: 20 },
+  step: { flexDirection: 'row', alignItems: 'center', marginHorizontal: 4 },
+  stepText: { fontSize: 12, color: '#bbb' },
+  activeStep: { color: '#000', fontWeight: 'bold' },
+  text: {
+    marginBottom: 5
   }
 });

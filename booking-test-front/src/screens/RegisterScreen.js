@@ -60,7 +60,7 @@ export default function RegisterScreen() {
       });
 
       Alert.alert('Успешно', 'Регистрация завершена');
-      navigation.navigate('Login');
+      navigation.navigate('Login', { screen: 'Login' });
     } catch (err) {
       Alert.alert(
         'Ошибка',
