@@ -43,8 +43,13 @@ export default function AppNavigator() {
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Register" component={RegisterScreen} />
       <Stack.Screen name="MainTabs" component={MainTabNavigator} />
+
       <Stack.Screen name="ArenaDetails" component={ArenaDetailsScreen} />
       <Stack.Screen name="ReservationScreen" component={ReservationScreen} />
+      <Stack.Screen
+        name="ActiveReservationScreen"
+        component={ActiveReservationScreen}
+      />
       <Stack.Screen
         name="EditReservationPage"
         component={EditReservationPage}

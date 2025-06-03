@@ -75,7 +75,7 @@ export default function ProfileScreen({ navigation }) {
           <MenuItem icon="lock-reset" label="Change password" />
         </View>
 
-        <View style={styles.menuBlock}>
+        <View style={styles.secondMenuBlock}>
           <MenuItem icon="headset" label="Support chat" />
           <MenuItem icon="handshake" label="Become a partner" />
           <MenuItem icon="information-outline" label="About the app" />
@@ -131,6 +131,16 @@ const styles = StyleSheet.create({
     color: '#555'
   },
   menuBlock: {
+    marginTop: -70,
+    backgroundColor: '#f9f9f9',
+    marginVertical: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    marginHorizontal: 12
+  },
+  secondMenuBlock: {
+    marginTop: 10,
     backgroundColor: '#f9f9f9',
     marginVertical: 6,
     paddingHorizontal: 12,

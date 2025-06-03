@@ -68,9 +68,7 @@ export default function ReservationPage() {
           {
             text: 'ОК',
             onPress: () => {
-              navigation.navigate('Reservations', {
-                screen: 'ActiveReservationScreen'
-              });
+              navigation.navigate('MainTabs', { screen: 'Reservations' });
             }
           }
         ]

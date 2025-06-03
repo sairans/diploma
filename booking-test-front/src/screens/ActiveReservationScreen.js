@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -19,6 +19,7 @@ import axios from 'axios';
 export default function ActiveReservationsScreen() {
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('active');
   const navigation = useNavigation();
 
   useFocusEffect(
@@ -46,52 +47,44 @@ export default function ActiveReservationsScreen() {
     }, [])
   );
 
-  const handleDelete = async (id) => {
-    try {
-      const token = await AsyncStorage.getItem('token');
-      await axios.delete(`http://172.20.10.5:5001/api/bookings/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setReservations((prev) => prev.filter((r) => r._id !== id));
-      Alert.alert('Успешно', 'Бронирование удалено');
-    } catch (error) {
-      Alert.alert('Ошибка', 'Не удалось удалить');
-    }
+  const handleDelete = (id) => {
+    Alert.alert(
+      'Подтвердите удаление',
+      'Вы уверены, что хотите удалить бронирование?',
+      [
+        {
+          text: 'Отмена',
+          style: 'cancel'
+        },
+        {
+          text: 'Удалить',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const token = await AsyncStorage.getItem('token');
+              await axios.delete(`http://172.20.10.5:5001/api/bookings/${id}`, {
+                headers: { Authorization: `Bearer ${token}` }
+              });
+              setReservations((prev) => prev.filter((r) => r._id !== id));
+              Alert.alert('Успешно', 'Бронирование удалено');
+            } catch (error) {
+              Alert.alert('Ошибка', 'Не удалось удалить');
+            }
+          }
+        }
+      ]
+    );
   };
 
   const handleEdit = (item) => {
     navigation.navigate('EditReservationPage', {
-      screen: 'EditReservationPage',
-      params: { bookingId: item._id }
+      bookingId: item._id
     });
   };
 
-  const renderItem = ({ item }) => (
-    <View style={styles.card}>
-      {item.ground?.images?.[0] && (
-        <Image source={{ uri: item.ground.images[0] }} style={styles.image} />
-      )}
-      <View style={styles.info}>
-        <Text style={styles.field}>⚽ {item.ground?.name || '—'}</Text>
-        <Text style={styles.detail}>Duration: 2 hours</Text>
-        <Text style={styles.detail}>₸ 50,000 тг</Text>
-        <View style={styles.buttonRow}>
-          <TouchableOpacity
-            onPress={() => handleDelete(item._id)}
-            style={styles.cancelButton}
-          >
-            <Text style={{ color: 'white' }}>Cancel</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => handleEdit(item)}
-            style={styles.editButton}
-          >
-            <Text>Edit</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </View>
-  );
+  const today = new Date().toISOString().split('T')[0];
+  const activeReservations = reservations.filter((r) => r.date >= today);
+  const archivedReservations = reservations.filter((r) => r.date < today);
 
   if (loading) {
     return (
@@ -103,18 +96,75 @@ export default function ActiveReservationsScreen() {
 
   return (
     <View style={styles.container}>
-      <Text
-        style={[
-          styles.title,
-          { marginTop: Platform.OS === 'android' ? 10 : 50 }
-        ]}
+      <View
+        style={{
+          flexDirection: 'row',
+          justifyContent: 'center',
+          marginBottom: 20,
+          marginTop: Platform.OS === 'android' ? 10 : 40,
+          borderBottomWidth: 1,
+          borderColor: '#ddd'
+        }}
       >
-        Активные
-      </Text>
+        {['active', 'archived'].map((tabKey) => (
+          <TouchableOpacity
+            key={tabKey}
+            onPress={() => setActiveTab(tabKey)}
+            style={{
+              paddingVertical: 8,
+              marginHorizontal: 16,
+              borderBottomWidth: activeTab === tabKey ? 2 : 0,
+              borderColor: '#000'
+            }}
+          >
+            <Text
+              style={{
+                fontWeight: activeTab === tabKey ? 'bold' : 'normal',
+                color: activeTab === tabKey ? '#000' : '#888'
+              }}
+            >
+              {tabKey === 'active' ? 'Активные' : 'Архивные'}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
       <FlatList
-        data={reservations}
+        data={
+          activeTab === 'active' ? activeReservations : archivedReservations
+        }
         keyExtractor={(item) => item._id}
-        renderItem={renderItem}
+        renderItem={({ item }) => (
+          <View style={styles.card}>
+            {item.ground?.images?.[0] && (
+              <Image
+                source={{ uri: item.ground.images[0] }}
+                style={styles.image}
+              />
+            )}
+            <View style={styles.info}>
+              <Text style={styles.field}>⚽ {item.ground?.name || '—'}</Text>
+              <Text style={styles.detail}>Date: {item.date}</Text>
+              <Text style={styles.detail}>Time: {item.timeSlot?.[0]}</Text>
+              <Text style={styles.detail}>₸ 50,000 тг</Text>
+              {activeTab === 'active' && (
+                <View style={styles.buttonRow}>
+                  <TouchableOpacity
+                    onPress={() => handleDelete(item._id)}
+                    style={styles.cancelButton}
+                  >
+                    <Text style={{ color: 'white' }}>Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => handleEdit(item)}
+                    style={styles.editButton}
+                  >
+                    <Text>Edit</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+          </View>
+        )}
       />
     </View>
   );
@@ -128,7 +178,7 @@ const styles = StyleSheet.create({
   },
   container: {
     padding: 10,
-    paddingBottom: 100, // чтобы контент не перекрывался навигацией
+    // paddingBottom: 100, // чтобы контент не перекрывался навигацией
     flex: 1,
     backgroundColor: '#fff'
   },
