@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -37,7 +38,7 @@ export default function ReservationPage() {
       const token = await AsyncStorage.getItem('token');
 
       await axios.post(
-        'http://192.168.221.11:5001/api/bookings',
+        'http://172.20.10.5:5001/api/bookings',
         {
           ground: groundId,
           fieldNumber: fieldNumber,

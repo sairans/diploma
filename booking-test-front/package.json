@@ -13,14 +13,16 @@
     "@expo/metro-runtime": "~5.0.4",
     "@react-native-async-storage/async-storage": "2.1.2",
     "@react-native-picker/picker": "^2.11.0",
-    "@react-navigation/native": "^7.0.14",
+    "@react-navigation/bottom-tabs": "^7.3.14",
+    "@react-navigation/native": "^7.1.10",
     "@react-navigation/stack": "^7.1.1",
     "axios": "^1.9.0",
     "expo": "53.0.9",
+    "expo-blur": "^14.1.4",
     "expo-font": "^13.0.4",
     "expo-image": "~2.1.7",
     "expo-status-bar": "~2.2.3",
-    "react": "19.0.0",
+    "react": "^19.0.0",
     "react-dom": "19.0.0",
     "react-native": "0.79.2",
     "react-native-calendar": "^0.13.1",
@@ -30,8 +32,8 @@
     "react-native-linear-gradient": "^2.8.3",
     "react-native-maps": "1.20.1",
     "react-native-reanimated": "^3.16.7",
-    "react-native-safe-area-context": "5.4.0",
-    "react-native-screens": "~4.10.0",
+    "react-native-safe-area-context": "^5.4.0",
+    "react-native-screens": "~4.11.1",
     "react-native-vector-icons": "^10.2.0",
     "react-native-web": "^0.20.0",
     "react-native-webview": "13.13.5",
@@ -41,8 +43,10 @@
   "devDependencies": {
     "@babel/core": "^7.20.0",
     "@babel/preset-react": "^7.27.1",
-    "react-native-dotenv": "^3.4.11",
-    "babel-plugin-dotenv": "^0.1.1"
+    "@react-native-community/cli": "latest",
+    "babel-plugin-dotenv": "^0.1.1",
+    "babel-preset-expo": "^13.1.11",
+    "react-native-dotenv": "^3.4.11"
   },
   "private": true
 }

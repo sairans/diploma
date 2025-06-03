@@ -50,7 +50,7 @@ export default function RegisterScreen() {
     }
 
     try {
-      await axios.post('http://192.168.221.11:5001/api/users/register', {
+      await axios.post('http://172.20.10.5:5001/api/users/register', {
         name,
         phone,
         email,

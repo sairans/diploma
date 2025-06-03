@@ -38,32 +38,6 @@ export default function ProfileScreen({ navigation }) {
     }
   }, [routeUser]);
 
-  useFocusEffect(
-    useCallback(() => {
-      const fetchUserData = async () => {
-        try {
-          const token = await AsyncStorage.getItem('token');
-          if (!token) return;
-          const response = await axios.get(
-            `http://192.168.221.11:5001/api/users/me`,
-            {
-              headers: { Authorization: `Bearer ${token}` }
-            }
-          );
-          const userData = response.data;
-          setUser((prev) => ({
-            ...prev,
-            ...userData,
-            avatar: userData.avatar ? { uri: userData.avatar } : prev.avatar
-          }));
-        } catch (error) {
-          console.error('Failed to fetch user data:', error);
-        }
-      };
-      fetchUserData();
-    }, [])
-  );
-
   const MenuItem = ({ icon, label, value, onPress }) => (
     <TouchableOpacity style={styles.menuItem} onPress={onPress}>
       <View style={styles.menuLeft}>
@@ -109,7 +83,7 @@ export default function ProfileScreen({ navigation }) {
 
         <TouchableOpacity
           style={styles.signOutButton}
-          onPress={() => navigation.navigate('Register')}
+          onPress={() => navigation.navigate('Login')}
         >
           <Icon name="logout" size={22} color="#ff3b30" />
           <Text style={styles.signOutText}>Sign out</Text>
@@ -161,7 +135,7 @@ const styles = StyleSheet.create({
   },
   headerImage: {
     width: '450%',
-    height: 240,
+    height: 140,
     resizeMode: 'cover'
   },
   avatarContainer: {

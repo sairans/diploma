@@ -27,7 +27,7 @@ export default function MainScreen() {
   useEffect(() => {
     const fetchGrounds = async () => {
       try {
-        const res = await axios.get('http://192.168.221.11:5001/api/grounds');
+        const res = await axios.get('http://172.20.10.5:5001/api/grounds');
         setGrounds(res.data.grounds);
       } catch (error) {
         console.error('Ошибка загрузки данных:', error);
@@ -120,7 +120,7 @@ export default function MainScreen() {
                     navigation.navigate('ArenaDetails', { venue: item })
                   }
                 >
-                  <Image
+                  {/* <Image
                     source={
                       item.images && item.images.length > 0
                         ? item.images[0]
@@ -128,7 +128,7 @@ export default function MainScreen() {
                     }
                     style={styles.venueImage}
                     contentFit="cover"
-                  />
+                  /> */}
                   <View style={styles.cardDetails}>
                     <Text style={styles.venueName}>{item.name}</Text>
                     <Text style={styles.venueInfo}>

@@ -18,7 +18,10 @@ export default function AppNavigator() {
       <Stack.Screen name="Main" component={MainScreen} />
       <Stack.Screen name="ArenaDetails" component={ArenaDetailsScreen} />
       <Stack.Screen name="ReservationScreen" component={ReservationScreen} />
-      <Stack.Screen name="ActiveReservationScreen" component={ActiveReservationScreen} />
+      <Stack.Screen
+        name="ActiveReservationScreen"
+        component={ActiveReservationScreen}
+      />
       <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
     </Stack.Navigator>
   );
