@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import axios from 'axios';
+import { useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,9 +8,11 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
-  Alert
+  Alert,
+  TextInput
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRoute, useNavigation } from '@react-navigation/native';
 
 export default function ArenaDetailsScreen() {
@@ -17,6 +21,57 @@ export default function ArenaDetailsScreen() {
   const { venue } = route.params;
 
   const [tab, setTab] = useState('About');
+
+  const [reviews, setReviews] = useState([]);
+  const [rating, setRating] = useState(0);
+  const [newComment, setNewComment] = useState('');
+  const [newRating, setNewRating] = useState(0);
+  const handleSubmitReview = async () => {
+    try {
+      const token = await AsyncStorage.getItem('token'); // 🔁 async
+      if (!token) {
+        Alert.alert('Ошибка', 'Вы не авторизованы');
+        return;
+      }
+
+      await axios.post(
+        `http://172.20.10.5:5001/api/reviews/`,
+        {
+          ground: venue._id,
+          comment: newComment,
+          rating: newRating
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      Alert.alert('Отзыв отправлен');
+      setNewComment('');
+      setNewRating(0);
+    } catch (error) {
+      console.error('Ошибка отправки отзыва:', error);
+      Alert.alert('Ошибка при отправке отзыва');
+    }
+  };
+
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        const res = await axios.get(
+          `http://172.20.10.5:5001/api/reviews/ground/${venue._id}`
+        );
+        setReviews(res.data.reviews);
+        setRating(res.data.averageRating || 0);
+      } catch (error) {
+        console.error('Ошибка загрузки отзывов', error);
+      }
+    };
+
+    fetchReviews();
+  }, []);
 
   return (
     <ScrollView style={styles.container}>
@@ -43,7 +98,9 @@ export default function ArenaDetailsScreen() {
         <Text style={styles.sub}>football arena</Text>
         <Text style={styles.address}>📍 {venue.address}</Text>
         <Text style={styles.address}>₸ {venue.pricePerHour} тг/час</Text>
-        <Text style={styles.address}>⭐ 9.3 · 58 ratings</Text>
+        <Text style={styles.address}>
+          ⭐ {rating.toFixed(1)} · {reviews.length} ratings
+        </Text>
 
         <View style={styles.socialRow}>
           <Ionicons name="logo-instagram" size={24} color="black" />
@@ -87,26 +144,71 @@ export default function ArenaDetailsScreen() {
         )}
 
         {tab === 'Reviews' && (
-          <View style={{ alignItems: 'center', marginVertical: 20 }}>
+          <View style={{ marginVertical: 20 }}>
             <Text style={styles.label}>Rate and write comment</Text>
             <View style={{ flexDirection: 'row', marginVertical: 10 }}>
               {[...Array(5)].map((_, i) => (
-                <Ionicons
-                  key={i}
-                  name="star-outline"
-                  size={24}
-                  color="#FFD700"
-                />
+                <TouchableOpacity key={i} onPress={() => setNewRating(i + 1)}>
+                  <Ionicons
+                    name="star"
+                    size={24}
+                    color={i < newRating ? '#FFD700' : '#ccc'}
+                  />
+                </TouchableOpacity>
               ))}
             </View>
-            <Ionicons
-              name="chatbubble-ellipses-outline"
-              size={64}
-              color="#ccc"
+
+            <TextInput
+              placeholder="Write a comment..."
+              value={newComment}
+              onChangeText={setNewComment}
+              style={{
+                borderColor: '#ccc',
+                borderWidth: 1,
+                padding: 10,
+                borderRadius: 8,
+                marginBottom: 10
+              }}
+              multiline
             />
-            <Text style={{ color: '#999', marginTop: 10 }}>
-              No comments yet
-            </Text>
+
+            <TouchableOpacity
+              style={{
+                backgroundColor: '#3b82f6',
+                padding: 10,
+                borderRadius: 8,
+                alignItems: 'center',
+                marginBottom: 20
+              }}
+              onPress={handleSubmitReview}
+            >
+              <Text style={{ color: '#fff', fontWeight: 'bold' }}>
+                Send Review
+              </Text>
+            </TouchableOpacity>
+
+            {reviews.length === 0 ? (
+              <View style={{ alignItems: 'center' }}>
+                <Ionicons
+                  name="chatbubble-ellipses-outline"
+                  size={64}
+                  color="#ccc"
+                />
+                <Text style={{ color: '#999', marginTop: 10 }}>
+                  No comments yet
+                </Text>
+              </View>
+            ) : (
+              reviews.map((rev, idx) => (
+                <View key={idx} style={{ marginBottom: 12 }}>
+                  <Text style={{ fontWeight: 'bold' }}>{rev.user.name}</Text>
+                  <Text style={{ color: '#555' }}>{rev.comment}</Text>
+                  <Text style={{ color: '#999', fontSize: 12 }}>
+                    ⭐ {rev.rating}
+                  </Text>
+                </View>
+              ))
+            )}
           </View>
         )}
 

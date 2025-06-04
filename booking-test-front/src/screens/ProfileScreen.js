@@ -19,13 +19,28 @@ export default function ProfileScreen({ navigation }) {
   const route = useRoute();
   const { user: routeUser } = route.params || {};
 
-  const [user, setUser] = useState({
-    name: 'Anuarbek',
-    phone: '+7-(778)-634-89-21',
-    city: 'Astana',
-    language: 'English',
-    avatar: require('../../assets/images/icon.png')
-  });
+  const [user, setUser] = useState({});
+
+  useFocusEffect(
+    useCallback(() => {
+      const fetchUser = async () => {
+        try {
+          const token = await AsyncStorage.getItem('token');
+          const response = await axios.get(
+            'http://172.20.10.5:5001/api/users/me',
+            {
+              headers: { Authorization: `Bearer ${token}` }
+            }
+          );
+          setUser(response.data);
+        } catch (err) {
+          console.error('Ошибка получения данных пользователя:', err.message);
+        }
+      };
+
+      fetchUser();
+    }, [])
+  );
 
   useEffect(() => {
     if (routeUser) {
@@ -60,7 +75,16 @@ export default function ProfileScreen({ navigation }) {
         />
 
         <View style={styles.avatarContainer}>
-          <Image source={user.avatar} style={styles.avatar} />
+          <Image
+            source={
+              user.avatar
+                ? typeof user.avatar === 'string'
+                  ? { uri: user.avatar }
+                  : user.avatar
+                : require('../../assets/images/icon.png')
+            }
+            style={styles.avatar}
+          />
           <View style={styles.userInfo}>
             <Text style={styles.username}>{user.name}</Text>
             <Text style={styles.phoneNumber}>{user.phone}</Text>
@@ -69,8 +93,8 @@ export default function ProfileScreen({ navigation }) {
 
         <View style={styles.menuBlock}>
           <MenuItem icon="credit-card" label="Payment" />
-          <MenuItem icon="translate" label="Language" value={user.language} />
-          <MenuItem icon="map-marker" label="City" value={user.city} />
+          <MenuItem icon="translate" label="Language" value={'English'} />
+          <MenuItem icon="map-marker" label="City" value={'Astana'} />
           <MenuItem icon="bell-ring-outline" label="Push Notifications" />
           <MenuItem icon="lock-reset" label="Change password" />
         </View>

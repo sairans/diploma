@@ -10,17 +10,27 @@ export default function EditReservationPage({ route, navigation }) {
   const [data, setData] = useState(null);
   const [fieldNumber, setFieldNumber] = useState();
   const [date, setDate] = useState('');
-  const [timeSlot, setTimeSlot] = useState('');
-  const [fields, setFields] = useState([
-    { number: 1 },
-    { number: 2 },
-    { number: 3 }
-  ]);
+  const [fields, setFields] = useState([]); // To store field numbers dynamically
+  const [availableSlots, setAvailableSlots] = useState([]); // To store available slots for the selected date and field
+  const [occupiedSlots, setOccupiedSlots] = useState([]); // To store occupied slots for the selected date and field
+  const [selectedSlots, setSelectedSlots] = useState([]);
 
   const today = new Date().toISOString().split('T')[0];
 
   useEffect(() => {
-    console.log('Route params:', route.params);
+    // Fetch all fields (for example, from API or hardcoded if static)
+    const fetchFields = async () => {
+      // If you have an API for fields, fetch from there. For now, assume 5 fields:
+      setFields([
+        { number: 1 },
+        { number: 2 },
+        { number: 3 },
+        { number: 4 },
+        { number: 5 }
+      ]);
+    };
+    fetchFields();
+
     const fetchBooking = async () => {
       const token = await AsyncStorage.getItem('token');
       const res = await axios.get(
@@ -33,7 +43,7 @@ export default function EditReservationPage({ route, navigation }) {
       setData(booking);
       setFieldNumber(booking.fieldNumber);
       setDate(booking.date);
-      setTimeSlot(booking.timeSlot[0]);
+      setSelectedSlots(booking.timeSlot);
     };
     if (route.params?.bookingId) {
       setBookingId(route.params.bookingId);
@@ -41,7 +51,37 @@ export default function EditReservationPage({ route, navigation }) {
     }
   }, [route.params]);
 
+  useEffect(() => {
+    if (!date || !fieldNumber) return;
+
+    const fetchSlots = async () => {
+      try {
+        const token = await AsyncStorage.getItem('token');
+        const occupiedRes = await axios.get(
+          `http://172.20.10.5:5001/api/bookings/occupied?date=${date}&fieldNumber=${fieldNumber}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        const availableRes = await axios.get(
+          `http://172.20.10.5:5001/api/bookings/available?date=${date}&fieldNumber=${fieldNumber}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        setOccupiedSlots(occupiedRes.data?.occupiedSlots || []);
+        setAvailableSlots(availableRes.data?.availableSlots || []);
+      } catch (e) {
+        setOccupiedSlots([]);
+        setAvailableSlots([]);
+      }
+    };
+
+    fetchSlots();
+  }, [date, fieldNumber]);
+
   const handleSave = async () => {
+    if (!availableSlots.includes(fieldNumber)) {
+      Alert.alert('Error', 'Field is not available for this date');
+      return;
+    }
     try {
       const token = await AsyncStorage.getItem('token');
       await axios.put(
@@ -49,29 +89,25 @@ export default function EditReservationPage({ route, navigation }) {
         {
           fieldNumber,
           date,
-          timeSlot: [timeSlot]
+          timeSlot: selectedSlots
         },
         {
           headers: { Authorization: `Bearer ${token}` }
         }
       );
       Alert.alert('Success', 'Reservation updated');
-      console.log('bookingId', bookingId);
-      console.log('data being sent:', {
-        fieldNumber,
-        date,
-        timeSlot: [timeSlot]
-      });
       navigation.goBack();
     } catch (err) {
       console.error(err);
       Alert.alert('Error', 'Failed to update reservation');
-      console.log('bookingId', bookingId);
-      console.log('data being sent:', {
-        fieldNumber,
-        date,
-        timeSlot: [timeSlot]
-      });
+    }
+  };
+
+  const handleSlotSelection = (slot) => {
+    if (selectedSlots.includes(slot)) {
+      setSelectedSlots(selectedSlots.filter((s) => s !== slot));
+    } else if (!data || selectedSlots.length < data.timeSlot.length) {
+      setSelectedSlots([...selectedSlots, slot]);
     }
   };
 
@@ -107,6 +143,7 @@ export default function EditReservationPage({ route, navigation }) {
       <FlatList
         data={fields}
         horizontal
+        keyExtractor={(item) => item.number.toString()}
         renderItem={({ item }) => (
           <TouchableOpacity
             onPress={() => setFieldNumber(item.number)}
@@ -114,7 +151,8 @@ export default function EditReservationPage({ route, navigation }) {
               padding: 12,
               margin: 4,
               borderRadius: 10,
-              backgroundColor: fieldNumber === item.number ? '#FDE047' : '#eee'
+              backgroundColor:
+                fieldNumber === item.number ? '#FDE047' : '#d1fae5'
             }}
           >
             <Text>Field #{item.number}</Text>
@@ -130,24 +168,46 @@ export default function EditReservationPage({ route, navigation }) {
       />
 
       <Text style={{ fontWeight: '600', marginTop: 20 }}>Select Time</Text>
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-        {['08:00', '09:00', '10:00', '11:00', '12:00', '13:00'].map((slot) => (
-          <TouchableOpacity
-            key={slot}
-            disabled={isPastTime(slot)}
-            onPress={() => setTimeSlot(slot)}
-            style={{
-              backgroundColor: timeSlot === slot ? '#FDE047' : '#eee',
-              opacity: isPastTime(slot) ? 0.4 : 1,
-              padding: 10,
-              borderRadius: 8,
-              margin: 4
-            }}
-          >
-            <Text>{slot}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+      {availableSlots.length || selectedSlots.length ? (
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+          {Array.from(new Set([...availableSlots, ...selectedSlots]))
+            .sort()
+            .map((slot) => {
+              const disabled =
+                (occupiedSlots.includes(slot) &&
+                  !selectedSlots.includes(slot)) ||
+                isPastTime(slot);
+              return (
+                <TouchableOpacity
+                  key={slot}
+                  disabled={disabled}
+                  onPress={() => handleSlotSelection(slot)}
+                  style={{
+                    backgroundColor: selectedSlots.includes(slot)
+                      ? '#FDE047'
+                      : '#eee',
+                    opacity: disabled ? 0.4 : 1,
+                    padding: 10,
+                    borderRadius: 8,
+                    margin: 4
+                  }}
+                >
+                  <Text>
+                    {slot}
+                    {occupiedSlots.includes(slot) &&
+                    !selectedSlots.includes(slot)
+                      ? ' (Занято)'
+                      : ''}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+        </View>
+      ) : (
+        <Text style={{ marginTop: 10, color: '#999' }}>
+          No available slots for this date.
+        </Text>
+      )}
 
       <TouchableOpacity
         onPress={handleSave}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -27,18 +27,97 @@ export default function ReservationPage() {
   const [date, setDate] = useState('');
   const [timeslot, setTimeslot] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
+  const [selectedSlots, setSelectedSlots] = useState([]);
   const [step, setStep] = useState(0);
+  const [occupiedSlots, setOccupiedSlots] = useState([]);
+  const [availableSlots, setAvailableSlots] = useState([]);
+  const [pricePerHour, setPricePerHour] = useState(0);
+  const [paymentMethod, setPaymentMethod] = useState('');
 
   const today = new Date().toISOString().split('T')[0];
   const isPastTime = (slot) => {
-    if (date !== today) return false;
+    if (!slot || date !== today) return false; // Проверяем, что slot существует
     const nowHour = new Date().getHours();
     const slotHour = parseInt(slot.split(':')[0]);
     return slotHour <= nowHour;
   };
 
+  useEffect(() => {
+    if (!groundId || !date) return;
+    const fetchSlots = async () => {
+      try {
+        const token = await AsyncStorage.getItem('token');
+        const occupiedRes = await axios.get(
+          `http://172.20.10.5:5001/api/bookings/occupied?groundId=${groundId}&date=${date}&fieldNumber=${fieldNumber}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        const availableRes = await axios.get(
+          `http://172.20.10.5:5001/api/bookings/available?groundId=${groundId}&date=${date}&fieldNumber=${fieldNumber}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        setOccupiedSlots(occupiedRes.data?.occupiedSlots || []);
+        setAvailableSlots(availableRes.data?.availableSlots || []);
+      } catch (e) {
+        setOccupiedSlots([]);
+        setAvailableSlots([]);
+      }
+    };
+    fetchSlots();
+  }, [groundId, date, fieldNumber]);
+
+  useEffect(() => {
+    const fetchGroundData = async () => {
+      try {
+        const res = await axios.get(
+          `http://localhost:5001/api/grounds/${groundId}`
+        );
+        setPricePerHour(res.data.pricePerHour); // Получаем цену за час с БД
+      } catch (err) {
+        console.error('Error fetching ground data:', err);
+      }
+    };
+
+    fetchGroundData();
+  }, [groundId]);
+
+  const handleSlotSelection = (slot) => {
+    if (selectedSlots.length < 5) {
+      if (selectedSlots.includes(slot)) {
+        setSelectedSlots(selectedSlots.filter((item) => item !== slot));
+      } else {
+        setSelectedSlots([...selectedSlots, slot]);
+      }
+    }
+  };
+
+  const calculateDuration = () => {
+    if (selectedSlots.length < 2) return 1; // Если выбрано меньше двух слотов, длительность 1 час
+    const sortedSlots = selectedSlots.slice().sort((a, b) => {
+      const aHour = parseInt(a.split(':')[0]);
+      const bHour = parseInt(b.split(':')[0]);
+      return aHour - bHour;
+    });
+    const firstSlot = sortedSlots[0];
+    const lastSlot = sortedSlots[sortedSlots.length - 1];
+    const firstHour = parseInt(firstSlot.split(':')[0]);
+    const lastHour = parseInt(lastSlot.split(':')[0]);
+    return lastHour - firstHour + 1; // Разница между первым и последним слотом + 1 час
+  };
+
+  const calculateTotal = () => {
+    const duration = calculateDuration();
+    return duration * 5000; // 5000 тг/час
+  };
+
   const handleSubmit = async () => {
-    if (!groundId || !date || !timeslot || !fieldNumber) {
+    if (
+      !groundId ||
+      !date ||
+      selectedSlots.length === 0 ||
+      !fieldNumber ||
+      !paymentMethod
+    ) {
       Alert.alert('Ошибка', 'Заполните все поля');
       return;
     }
@@ -52,7 +131,8 @@ export default function ReservationPage() {
           ground: groundId,
           fieldNumber: fieldNumber,
           date: date,
-          timeSlot: [timeslot]
+          timeSlot: selectedSlots,
+          paymentMethod: paymentMethod // Добавляем выбранный метод оплаты
         },
         {
           headers: {
@@ -63,7 +143,7 @@ export default function ReservationPage() {
 
       Alert.alert(
         'Успех',
-        `Арендовано поле №${fieldNumber} на ${date}, время: ${timeslot}`,
+        `Арендовано поле №${fieldNumber} на ${date}, время: ${selectedSlots.join(', ')}, оплата: ${paymentMethod}`,
         [
           {
             text: 'ОК',
@@ -113,7 +193,9 @@ export default function ReservationPage() {
               <TouchableOpacity
                 style={[
                   styles.selector,
-                  fieldNumber === item.number && styles.selectedSlot
+                  fieldNumber === item.number
+                    ? styles.selectedSlot
+                    : styles.defaultSlot
                 ]}
                 onPress={() => setFieldNumber(item.number)}
               >
@@ -131,7 +213,7 @@ export default function ReservationPage() {
       )}
 
       {step === 1 && (
-        <>
+        <ScrollView contentContainerStyle={{ paddingBottom: 200 }}>
           <Calendar
             minDate={today}
             onDayPress={(day) => setDate(day.dateString)}
@@ -146,55 +228,99 @@ export default function ReservationPage() {
           />
           <Text style={styles.label}>Select time:</Text>
           <View style={styles.slotsContainer}>
-            {[
-              '09:00–10:00',
-              '10:00–11:00',
-              '11:00–12:00',
-              '12:00–13:00',
-              '13:00–14:00',
-              '14:00–15:00',
-              '15:00–16:00',
-              '16:00–17:00'
-            ].map((slot) => {
-              const disabled = isPastTime(slot);
-              return (
-                <TouchableOpacity
-                  key={slot}
-                  disabled={disabled}
-                  onPress={() => setTimeslot(slot)}
-                  style={[
-                    styles.slotButton,
-                    timeslot === slot && styles.selectedSlot,
-                    disabled && { backgroundColor: '#eee' }
-                  ]}
-                >
-                  <Text
-                    style={[styles.slotText, disabled && { color: '#aaa' }]}
+            {(availableSlots || [])
+              .concat(occupiedSlots || [])
+              .map((slot, index) => {
+                const disabled =
+                  occupiedSlots.includes(slot) || isPastTime(slot);
+                const isSelected = selectedSlots.includes(slot);
+
+                return (
+                  <TouchableOpacity
+                    key={index} // Используем индекс или slot для ключа
+                    disabled={disabled}
+                    onPress={() => handleSlotSelection(slot)}
+                    style={[
+                      styles.slotButton,
+                      isSelected && styles.selectedSlot,
+                      disabled && { backgroundColor: '#eee' }
+                    ]}
                   >
+                    <Text
+                      style={[styles.slotText, disabled && { color: '#aaa' }]}
+                    >
+                      {slot}
+                      {occupiedSlots.includes(slot) ? ' (Занято)' : ''}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+          </View>
+          {selectedSlots.length > 0 && (
+            <View style={styles.selectedSlotsContainer}>
+              <Text>Selected slots:</Text>
+              <View style={styles.selectedSlots}>
+                {selectedSlots.map((slot, index) => (
+                  <Text key={index} style={styles.selectedSlotText}>
                     {slot}
                   </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
+                ))}
+              </View>
+            </View>
+          )}
           <TouchableOpacity
             style={styles.submitButton}
             onPress={() => setStep(2)}
           >
             <Text style={styles.submitButtonText}>Next</Text>
           </TouchableOpacity>
-        </>
+        </ScrollView>
       )}
 
       {step === 2 && (
         <View>
           <Text style={styles.label}>Reservation Details</Text>
-          <Text style={styles.text}>Arena ID: {groundId}</Text>
           <Text style={styles.text}>Field: #{fieldNumber}</Text>
           <Text style={styles.text}>Date: {date}</Text>
-          <Text style={styles.text}>Time: {timeslot}</Text>
-          <Text style={styles.text}>Duration: 1 hour</Text>
-          <Text style={styles.text}>Total: 50,000 тг</Text>
+          <Text style={styles.text}>Time: {selectedSlots.join(', ')}</Text>
+          <Text style={styles.text}>Duration: {calculateDuration()} hours</Text>
+
+          <Text style={styles.label}>Payment Method</Text>
+          <View style={styles.paymentMethods}>
+            <TouchableOpacity
+              style={[
+                styles.paymentMethodButton,
+                paymentMethod === 'cash' && styles.selectedPaymentMethod
+              ]}
+              onPress={() => setPaymentMethod('cash')}
+            >
+              <Text>Cash</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.paymentMethodButton,
+                paymentMethod === 'kaspi' && styles.selectedPaymentMethod
+              ]}
+              onPress={() => setPaymentMethod('kaspi')}
+            >
+              <Text>Kaspi Transfer</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.paymentMethodButton,
+                paymentMethod === 'halyk' && styles.selectedPaymentMethod
+              ]}
+              onPress={() => setPaymentMethod('halyk')}
+            >
+              <Text>Halyk Transfer</Text>
+            </TouchableOpacity>
+          </View>
+
+          <Text style={styles.text}>Price per hour: {pricePerHour} тг</Text>
+          <Text style={styles.text}>
+            Total: {pricePerHour * calculateDuration()} тг
+          </Text>
+
           <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
             <Text style={styles.submitButtonText}>Make reservation</Text>
           </TouchableOpacity>
@@ -205,6 +331,39 @@ export default function ReservationPage() {
 }
 
 const styles = StyleSheet.create({
+  selectedSlotsContainer: {
+    marginVertical: 10,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10
+  },
+  selectedSlots: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10
+  },
+  selectedSlotText: {
+    backgroundColor: '#f0f0f0',
+    padding: 8,
+    borderRadius: 5,
+    marginRight: 5
+  },
+  slotButton: {
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 6,
+    marginBottom: 10,
+    width: '48%',
+    alignItems: 'center'
+  },
+  slotText: {
+    color: '#1d1f1e'
+  },
+  selectedSlot: {
+    backgroundColor: '#FDE047', // Цвет для выбранного слота
+    borderColor: '#FDE047'
+  },
   safeArea: {
     flex: 1,
     paddingTop: Platform.OS === 'android' ? 30 : 0,
@@ -229,7 +388,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     paddingTop: 30,
     marginBottom: 20,
-    marginLeft: 50
+    marginLeft: 10
   },
   label: {
     fontWeight: 'bold',
@@ -238,9 +397,16 @@ const styles = StyleSheet.create({
   selector: {
     padding: 12,
     borderWidth: 1,
-    borderColor: '#ccc',
     borderRadius: 8,
     marginBottom: 15
+  },
+  defaultSlot: {
+    borderColor: '#ccc',
+    backgroundColor: '#fff'
+  },
+  selectedSlot: {
+    borderColor: '#888',
+    backgroundColor: '#f0f0f0'
   },
   calendar: {
     marginBottom: 15
@@ -258,9 +424,6 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     width: '48%',
     alignItems: 'center'
-  },
-  selectedSlot: {
-    backgroundColor: '#1d1f1e'
   },
   slotText: {
     color: '#1d1f1e'
@@ -306,5 +469,22 @@ const styles = StyleSheet.create({
   activeStep: { color: '#000', fontWeight: 'bold' },
   text: {
     marginBottom: 5
+  },
+  paymentMethods: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginVertical: 15
+  },
+  paymentMethodButton: {
+    padding: 15,
+    borderWidth: 1,
+    borderRadius: 8,
+    width: '30%',
+    alignItems: 'center',
+    marginVertical: 5
+  },
+  selectedPaymentMethod: {
+    backgroundColor: '#FDE047', // Цвет выбранного метода
+    borderColor: '#FDE047'
   }
 });
