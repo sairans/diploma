@@ -195,7 +195,6 @@ exports.updateBooking = async (req, res) => {
       booking.date = date;
     }
 
-    // Проверка доступности временных слотов с конфликтом
     if (timeSlot) {
       const conflicting = await Booking.find({
         _id: { $ne: booking._id },
@@ -276,13 +275,24 @@ exports.deleteBooking = async (req, res) => {
 // Get occupied time slots for a ground and date
 exports.getOccupiedSlots = async (req, res) => {
   try {
-    const { groundId, date } = req.query;
-    if (!groundId || !date) {
-      return res.status(400).json({ message: 'groundId и date обязательны' });
+    const { groundId, date, fieldNumber } = req.query; // Передаем fieldNumber
+    if (!groundId || !date || !fieldNumber) {
+      // Проверяем, что есть groundId, date, fieldNumber
+      return res
+        .status(400)
+        .json({ message: 'groundId, date и fieldNumber обязательны' });
     }
-    const bookings = await Booking.find({ ground: groundId, date });
-    const timeSlots = bookings.flatMap((b) =>
-      b.timeSlot.map((slot) => slot.trim())
+    const bookings = await Booking.find({
+      ground: groundId,
+      date,
+      fieldNumber
+    }); // Учитываем поле
+    const timeSlots = bookings.flatMap(
+      (b) =>
+        b.timeSlot.map((slot) => ({
+          slot: slot.trim(),
+          fieldNumber: b.fieldNumber
+        })) // Добавляем fieldNumber
     );
     res.json({ occupiedSlots: timeSlots });
   } catch (err) {
@@ -296,9 +306,12 @@ exports.getOccupiedSlots = async (req, res) => {
 exports.getAvailableSlots = async (req, res) => {
   try {
     const { groundId, date, fieldNumber } = req.query;
-    if (!groundId || !date) {
-      return res.status(400).json({ message: 'groundId и date обязательны' });
+    if (!groundId || !date || !fieldNumber) {
+      return res
+        .status(400)
+        .json({ message: 'groundId, date и fieldNumber обязательны' });
     }
+
     const ground = await Ground.findById(groundId);
     if (!ground)
       return res.status(404).json({ message: 'Площадка не найдена' });
@@ -329,14 +342,17 @@ exports.getAvailableSlots = async (req, res) => {
         .status(400)
         .json({ message: 'availableHours не указаны для площадки' });
     }
+
     const startHour = parseInt(ground.availableHours.start.split(':')[0]);
     const endHour = parseInt(ground.availableHours.end.split(':')[0]);
+
     const allSlots = [];
     for (let h = startHour; h < endHour; h++) {
       allSlots.push(
         `${String(h).padStart(2, '0')}:00–${String(h + 1).padStart(2, '0')}:00`
       );
     }
+
     const bookings = await Booking.find({
       ground: groundId,
       date,
@@ -345,6 +361,7 @@ exports.getAvailableSlots = async (req, res) => {
     const occupied = bookings.flatMap((b) =>
       b.timeSlot.map((slot) => slot.trim())
     );
+
     const available = allSlots.filter(
       (slot) => !occupied.includes(slot.trim())
     );
