@@ -27,7 +27,7 @@ export default function ProfileScreen({ navigation }) {
         try {
           const token = await AsyncStorage.getItem('token');
           const response = await axios.get(
-            'http://172.20.10.5:5001/api/users/me',
+            'http://192.168.59.11:5001/api/users/me',
             {
               headers: { Authorization: `Bearer ${token}` }
             }
@@ -92,7 +92,11 @@ export default function ProfileScreen({ navigation }) {
         </View>
 
         <View style={styles.menuBlock}>
-          <MenuItem icon="credit-card" label="Payment" />
+          <MenuItem
+            icon="credit-card"
+            label="Payment"
+            onPress={() => navigation.navigate('Payments')}
+          />
           <MenuItem icon="translate" label="Language" value={'English'} />
           <MenuItem icon="map-marker" label="City" value={'Astana'} />
           <MenuItem icon="bell-ring-outline" label="Push Notifications" />
@@ -100,9 +104,21 @@ export default function ProfileScreen({ navigation }) {
         </View>
 
         <View style={styles.secondMenuBlock}>
-          <MenuItem icon="headset" label="Support chat" />
-          <MenuItem icon="handshake" label="Become a partner" />
-          <MenuItem icon="information-outline" label="About the app" />
+          <MenuItem
+            icon="headset"
+            label="Support chat"
+            onPress={() => navigation.navigate('BecomePartner')}
+          />
+          <MenuItem
+            icon="handshake"
+            label="Become a partner"
+            onPress={() => navigation.navigate('SupportChat')}
+          />
+          <MenuItem
+            icon="information-outline"
+            label="About the app"
+            onPress={() => navigation.navigate('AboutApp')}
+          />
         </View>
 
         <TouchableOpacity

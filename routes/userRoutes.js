@@ -6,7 +6,8 @@ const {
   updateUserProfile,
   addUserCard,
   deleteUserCard,
-  getMyProfile
+  getMyProfile,
+  getUserCards
 } = require('../controllers/userController');
 const router = express.Router();
 const { protect } = require('../middlewares/auth');
@@ -22,6 +23,7 @@ router.get('/', protect, admin, getAllUsers);
 router.put('/me', protect, updateUserProfile);
 router.put('/payment', protect, addUserCard);
 router.delete('/payment/:id', protect, deleteUserCard);
+router.get('/payment', protect, getUserCards);
 router.get('/me', protect, getMyProfile);
 
 module.exports = router;

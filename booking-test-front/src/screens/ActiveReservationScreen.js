@@ -29,7 +29,7 @@ export default function ActiveReservationsScreen() {
           setLoading(true);
           const token = await AsyncStorage.getItem('token');
           const response = await fetch(
-            `http://172.20.10.5:5001/api/bookings/my`,
+            `http://192.168.59.11:5001/api/bookings/my`,
             {
               headers: { Authorization: `Bearer ${token}` }
             }
@@ -62,9 +62,12 @@ export default function ActiveReservationsScreen() {
           onPress: async () => {
             try {
               const token = await AsyncStorage.getItem('token');
-              await axios.delete(`http://172.20.10.5:5001/api/bookings/${id}`, {
-                headers: { Authorization: `Bearer ${token}` }
-              });
+              await axios.delete(
+                `http://192.168.59.11:5001/api/bookings/${id}`,
+                {
+                  headers: { Authorization: `Bearer ${token}` }
+                }
+              );
               setReservations((prev) => prev.filter((r) => r._id !== id));
               Alert.alert('Успешно', 'Бронирование удалено');
             } catch (error) {

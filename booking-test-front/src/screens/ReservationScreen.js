@@ -48,11 +48,11 @@ export default function ReservationPage() {
       try {
         const token = await AsyncStorage.getItem('token');
         const occupiedRes = await axios.get(
-          `http://172.20.10.5:5001/api/bookings/occupied?groundId=${groundId}&date=${date}&fieldNumber=${fieldNumber}`,
+          `http://192.168.59.11:5001/api/bookings/occupied?groundId=${groundId}&date=${date}&fieldNumber=${fieldNumber}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         const availableRes = await axios.get(
-          `http://172.20.10.5:5001/api/bookings/available?groundId=${groundId}&date=${date}&fieldNumber=${fieldNumber}`,
+          `http://192.168.59.11:5001/api/bookings/available?groundId=${groundId}&date=${date}&fieldNumber=${fieldNumber}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
@@ -126,7 +126,7 @@ export default function ReservationPage() {
       const token = await AsyncStorage.getItem('token');
 
       await axios.post(
-        'http://172.20.10.5:5001/api/bookings',
+        'http://192.168.59.11:5001/api/bookings',
         {
           ground: groundId,
           fieldNumber: fieldNumber,
@@ -143,7 +143,7 @@ export default function ReservationPage() {
 
       Alert.alert(
         'Успех',
-        `Арендовано поле №${fieldNumber} на ${date}, время: ${selectedSlots.join(', ')}, оплата: ${paymentMethod}`,
+        `Арендовано поле №${fieldNumber} на ${date}, время: ${selectedSlots.map((s) => (typeof s === 'string' ? s : s?.slot)).join(', ')}, оплата: ${paymentMethod}`,
         [
           {
             text: 'ОК',
@@ -199,7 +199,7 @@ export default function ReservationPage() {
                 ]}
                 onPress={() => setFieldNumber(item.number)}
               >
-                <Text>Field #{item.number}</Text>
+                <Text>{`Field #${item?.number ?? item}`}</Text>
               </TouchableOpacity>
             )}
           />
@@ -249,7 +249,7 @@ export default function ReservationPage() {
                     <Text
                       style={[styles.slotText, disabled && { color: '#aaa' }]}
                     >
-                      {slot}
+                      {typeof slot === 'string' ? slot : slot?.slot}
                       {occupiedSlots.includes(slot) ? ' (Занято)' : ''}
                     </Text>
                   </TouchableOpacity>
@@ -262,7 +262,7 @@ export default function ReservationPage() {
               <View style={styles.selectedSlots}>
                 {selectedSlots.map((slot, index) => (
                   <Text key={index} style={styles.selectedSlotText}>
-                    {slot}
+                    {typeof slot === 'string' ? slot : slot?.slot}
                   </Text>
                 ))}
               </View>
@@ -282,7 +282,12 @@ export default function ReservationPage() {
           <Text style={styles.label}>Reservation Details</Text>
           <Text style={styles.text}>Field: #{fieldNumber}</Text>
           <Text style={styles.text}>Date: {date}</Text>
-          <Text style={styles.text}>Time: {selectedSlots.join(', ')}</Text>
+          <Text style={styles.text}>
+            Time:{' '}
+            {selectedSlots
+              .map((s) => (typeof s === 'string' ? s : s?.slot))
+              .join(', ')}
+          </Text>
           <Text style={styles.text}>Duration: {calculateDuration()} hours</Text>
 
           <Text style={styles.label}>Payment Method</Text>

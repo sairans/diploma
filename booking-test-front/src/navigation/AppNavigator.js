@@ -10,6 +10,10 @@ import ReservationScreen from '../screens/ReservationScreen';
 import ActiveReservationScreen from '../screens/ActiveReservationScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import EditReservationPage from '../screens/EditReservationPage';
+import Payments from '../screens/ProfilePage/Payments';
+import AboutApp from '../screens/ProfilePage/AboutApp';
+import SupportChat from '../screens/ProfilePage/SupportChat';
+import BecomePartner from '../screens/ProfilePage/BecomePartner';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -43,9 +47,12 @@ export default function AppNavigator() {
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Register" component={RegisterScreen} />
       <Stack.Screen name="MainTabs" component={MainTabNavigator} />
-
+      <Stack.Screen name="Payments" component={Payments} />
       <Stack.Screen name="ArenaDetails" component={ArenaDetailsScreen} />
       <Stack.Screen name="ReservationScreen" component={ReservationScreen} />
+      <Stack.Screen name="AboutApp" component={AboutApp} />
+      <Stack.Screen name="SupportChat" component={SupportChat} />
+      <Stack.Screen name="BecomePartner" component={BecomePartner} />
       <Stack.Screen
         name="ActiveReservationScreen"
         component={ActiveReservationScreen}

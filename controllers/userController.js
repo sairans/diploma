@@ -122,11 +122,24 @@ exports.addUserCard = async (req, res) => {
 exports.deleteUserCard = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
-    user.payments = user.payments.filter((p) => p.last4 !== req.params.last4);
+    user.payments = user.payments.filter(
+      (p) => p._id.toString() !== req.params.id
+    );
     await user.save();
     res.json({ message: 'Карта удалена', payments: user.payments });
   } catch (err) {
     res.status(500).json({ message: 'Ошибка удаления карты' });
+  }
+};
+
+exports.getUserCards = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).select('payments');
+    if (!user)
+      return res.status(404).json({ message: 'Пользователь не найден' });
+    res.json(user.payments);
+  } catch (err) {
+    res.status(500).json({ message: 'Ошибка получения карт пользователя' });
   }
 };
 

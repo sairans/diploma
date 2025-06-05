@@ -35,7 +35,7 @@ export default function ArenaDetailsScreen() {
       }
 
       await axios.post(
-        `http://172.20.10.5:5001/api/reviews/`,
+        `http://192.168.59.11:5001/api/reviews/`,
         {
           ground: venue._id,
           comment: newComment,
@@ -61,7 +61,7 @@ export default function ArenaDetailsScreen() {
     const fetchReviews = async () => {
       try {
         const res = await axios.get(
-          `http://172.20.10.5:5001/api/reviews/ground/${venue._id}`
+          `http://192.168.59.11:5001/api/reviews/ground/${venue._id}`
         );
         setReviews(res.data.reviews);
         setRating(res.data.averageRating || 0);
