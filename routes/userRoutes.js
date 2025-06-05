@@ -7,7 +7,9 @@ const {
   addUserCard,
   deleteUserCard,
   getMyProfile,
-  getUserCards
+  getUserCards,
+  forgotPassword,
+  changePassword
 } = require('../controllers/userController');
 const router = express.Router();
 const { protect } = require('../middlewares/auth');
@@ -25,5 +27,7 @@ router.put('/payment', protect, addUserCard);
 router.delete('/payment/:id', protect, deleteUserCard);
 router.get('/payment', protect, getUserCards);
 router.get('/me', protect, getMyProfile);
+router.post('/forgot-password', forgotPassword);
+router.put('/password', protect, changePassword);
 
 module.exports = router;

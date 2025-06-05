@@ -20,6 +20,10 @@ export default function ProfileScreen({ navigation }) {
   const { user: routeUser } = route.params || {};
 
   const [user, setUser] = useState({});
+  const [languageModalVisible, setLanguageModalVisible] = useState(false);
+  const [cityModalVisible, setCityModalVisible] = useState(false);
+  const [language, setLanguage] = useState('English');
+  const [city, setCity] = useState('Astana');
 
   useFocusEffect(
     useCallback(() => {
@@ -97,10 +101,35 @@ export default function ProfileScreen({ navigation }) {
             label="Payment"
             onPress={() => navigation.navigate('Payments')}
           />
-          <MenuItem icon="translate" label="Language" value={'English'} />
-          <MenuItem icon="map-marker" label="City" value={'Astana'} />
-          <MenuItem icon="bell-ring-outline" label="Push Notifications" />
-          <MenuItem icon="lock-reset" label="Change password" />
+          <MenuItem
+            icon="translate"
+            label="Language"
+            value={language}
+            onPress={() => setLanguageModalVisible(true)}
+          />
+          <MenuItem
+            icon="map-marker"
+            label="City"
+            value={city}
+            onPress={() => setCityModalVisible(true)}
+          />
+          <MenuItem
+            icon="bell-ring-outline"
+            label="Push Notifications"
+            onPress={() => navigation.navigate('PushNotifications')}
+          />
+          <MenuItem
+            icon="lock-reset"
+            label="Change password"
+            onPress={() => navigation.navigate('ChangePassword')}
+          />
+          {user.isAdmin && (
+            <MenuItem
+              icon="view-dashboard"
+              label="Dashboard"
+              onPress={() => navigation.navigate('AdminDashboard')}
+            />
+          )}
         </View>
 
         <View style={styles.secondMenuBlock}>
@@ -129,6 +158,51 @@ export default function ProfileScreen({ navigation }) {
           <Text style={styles.signOutText}>Sign out</Text>
         </TouchableOpacity>
       </ScrollView>
+      {languageModalVisible && (
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Select Language</Text>
+            {['English', 'Russian', 'Kazakh'].map((lang) => (
+              <TouchableOpacity
+                key={lang}
+                style={styles.modalItem}
+                onPress={() => {
+                  setLanguage(lang);
+                  setLanguageModalVisible(false);
+                }}
+              >
+                <Text style={styles.modalText}>{lang}</Text>
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity onPress={() => setLanguageModalVisible(false)}>
+              <Text style={styles.modalCancel}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
+      {cityModalVisible && (
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Select City</Text>
+            {['Astana', 'Almaty'].map((c) => (
+              <TouchableOpacity
+                key={c}
+                style={styles.modalItem}
+                onPress={() => {
+                  setCity(c);
+                  setCityModalVisible(false);
+                }}
+              >
+                <Text style={styles.modalText}>{c}</Text>
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity onPress={() => setCityModalVisible(false)}>
+              <Text style={styles.modalCancel}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
     </View>
   );
 }
@@ -228,5 +302,38 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#ff3b30',
     fontWeight: '600'
+  },
+  modalOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 100
+  },
+  modalContent: {
+    width: '80%',
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 20,
+    alignItems: 'center'
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 20
+  },
+  modalItem: {
+    paddingVertical: 10
+  },
+  modalText: {
+    fontSize: 16
+  },
+  modalCancel: {
+    marginTop: 20,
+    color: 'red'
   }
 });

@@ -38,7 +38,8 @@
     "react-native-web": "^0.20.0",
     "react-native-webview": "13.13.5",
     "react-native-yamap": "^4.8.3",
-    "react-navigation": "^5.0.0"
+    "react-navigation": "^5.0.0",
+    "expo-notifications": "~0.31.3"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

@@ -153,3 +153,63 @@ exports.getMyProfile = async (req, res) => {
     res.status(500).json({ message: 'Ошибка получения данных пользователя' });
   }
 };
+
+exports.changePassword = async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+
+  if (!currentPassword || !newPassword) {
+    return res.status(400).json({ message: 'Все поля обязательны' });
+  }
+
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user)
+      return res.status(404).json({ message: 'Пользователь не найден' });
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch)
+      return res.status(400).json({ message: 'Неверный текущий пароль' });
+
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(newPassword, salt);
+
+    await user.save();
+    res.json({ message: 'Пароль успешно обновлен' });
+  } catch (err) {
+    res.status(500).json({ message: 'Ошибка при смене пароля' });
+  }
+};
+
+exports.forgotPassword = async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) return res.status(400).json({ message: 'Email обязателен' });
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user)
+      return res.status(404).json({ message: 'Пользователь не найден' });
+
+    const tempPassword = Math.random().toString(36).slice(-8);
+
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(tempPassword, salt);
+    await user.save();
+
+    await transporter.sendMail({
+      from: '"Sports Booking App" <noreply@sportsbooking.kz>',
+      to: user.email,
+      subject: 'Ваш временный пароль',
+      html: `
+        <p>Здравствуйте, ${user.name || 'пользователь'}!</p>
+        <p>Ваш временный пароль для входа: <strong>${tempPassword}</strong></p>
+        <p>Пожалуйста, войдите и смените пароль в профиле.</p>
+      `
+    });
+
+    res.json({ message: 'Временный пароль отправлен на email' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Ошибка сброса пароля' });
+  }
+};
