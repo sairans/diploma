@@ -103,7 +103,11 @@ export default function MainScreen() {
           <Ionicons name="location-sharp" size={18} color="#000" />
           <Text style={styles.cityText}>Astana</Text>
         </View>
-        <Ionicons name="notifications-outline" size={24} color="#000" />
+        <TouchableOpacity
+          onPress={() => navigation.navigate('PushNotifications')}
+        >
+          <Ionicons name="notifications-outline" size={24} color="#000" />
+        </TouchableOpacity>
       </View>
       <MapView
         style={styles.map}

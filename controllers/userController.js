@@ -1,6 +1,7 @@
 const User = require('../models/user');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { sendEmail } = require('../utils/emailService');
 
 exports.registerUser = async (req, res) => {
   const { name, email, password, phone, avatar, isAdmin } = req.body;
@@ -36,6 +37,20 @@ exports.registerUser = async (req, res) => {
     });
 
     res.status(201).json({ token });
+
+    if (user?.email) {
+      const html = `
+        <h2>Добро пожаловать в приложение Sports Booking!</h2>
+        <p>Спасибо за регистрацию, ${user.name || 'пользователь'}.</p>
+        <p>Теперь вы можете бронировать спортивные площадки через наше приложение.</p>
+      `;
+
+      await sendEmail({
+        to: user.email,
+        subject: 'Добро пожаловать!',
+        html
+      });
+    }
   } catch (error) {
     console.error(error); // helpful for debugging
     res.status(500).json({ message: 'Server error' });
@@ -196,8 +211,7 @@ exports.forgotPassword = async (req, res) => {
     user.password = await bcrypt.hash(tempPassword, salt);
     await user.save();
 
-    await transporter.sendMail({
-      from: '"Sports Booking App" <noreply@sportsbooking.kz>',
+    await sendEmail({
       to: user.email,
       subject: 'Ваш временный пароль',
       html: `

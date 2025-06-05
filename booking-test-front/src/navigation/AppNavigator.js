@@ -16,6 +16,7 @@ import SupportChat from '../screens/ProfilePage/SupportChat';
 import BecomePartner from '../screens/ProfilePage/BecomePartner';
 import ChangePassword from '../screens/ProfilePage/ChangePassword';
 import PushNotifications from '../screens/ProfilePage/PushNotifications';
+import ForgotPassword from '../screens/ForgotPassword';
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -56,6 +57,7 @@ export default function AppNavigator() {
       <Stack.Screen name="BecomePartner" component={BecomePartner} />
       <Stack.Screen name="ChangePassword" component={ChangePassword} />
       <Stack.Screen name="PushNotifications" component={PushNotifications} />
+      <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
       <Stack.Screen
         name="ActiveReservationScreen"
         component={ActiveReservationScreen}
