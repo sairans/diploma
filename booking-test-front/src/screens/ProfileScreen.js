@@ -127,7 +127,7 @@ export default function ProfileScreen({ navigation }) {
             <MenuItem
               icon="view-dashboard"
               label="Dashboard"
-              onPress={() => navigation.navigate('AdminDashboard')}
+              onPress={() => navigation.navigate('Dashboard')}
             />
           )}
         </View>

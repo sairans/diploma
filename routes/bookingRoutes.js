@@ -10,31 +10,26 @@ const {
   getAllBookings,
   getOccupiedSlots,
   getAvailableSlots,
-  getNearbyGrounds
+  getNearbyGrounds,
+  getBookingsByGround
 } = require('../controllers/bookingController');
 
-// Получить все бронирования текущего пользователя
 router.get('/my', protect, getMyBookings);
 
-// Забронировать площадку
 router.post('/', protect, createBooking);
 
-// // Получить занятые слоты по дате и площадке
 router.get('/occupied', getOccupiedSlots);
 
-// // Получить свободные слоты по дате и площадке
 router.get('/available', getAvailableSlots);
 
-// // Получить ближайшие площадки
 router.get('/nearby', getNearbyGrounds);
 
-// Получить все бронирования (только для админа)
 router.get('/all', protect, admin, getAllBookings);
 
-// Обновить бронирование (только владелец или админ)
 router.put('/:id', protect, updateBooking);
 
-// Удалить бронирование (только владелец или админ)
 router.delete('/:id', protect, deleteBooking);
+
+router.get('/ground/:groundId', protect, getBookingsByGround);
 
 module.exports = router;

@@ -403,3 +403,24 @@ exports.getNearbyGrounds = async (req, res) => {
     });
   }
 };
+
+// Get bookings by ground ID
+exports.getBookingsByGround = async (req, res) => {
+  try {
+    const { groundId } = req.params;
+    if (!groundId) {
+      return res.status(400).json({ message: 'Не указан ID площадки' });
+    }
+
+    const bookings = await Booking.find({ ground: groundId })
+      .populate('user', 'name email')
+      .populate('ground');
+
+    res.json({ bookings });
+  } catch (err) {
+    res.status(500).json({
+      message: 'Ошибка получения бронирований по площадке',
+      error: err.message
+    });
+  }
+};
