@@ -1,6 +1,5 @@
 const Ground = require('../models/ground');
 
-// Получить все площадки
 exports.getAllGrounds = async (req, res) => {
   try {
     const grounds = await Ground.find();
@@ -10,7 +9,6 @@ exports.getAllGrounds = async (req, res) => {
   }
 };
 
-// Поиск площадок по имени
 exports.searchGroundsByName = async (req, res) => {
   try {
     const query = req.query.name;
@@ -81,7 +79,6 @@ exports.createGround = async (req, res) => {
   }
 };
 
-// Получить одну площадку по ID
 exports.getGroundById = async (req, res) => {
   try {
     if (!req.params.id) {
@@ -105,7 +102,6 @@ exports.getGroundsByUser = async (req, res) => {
   }
 };
 
-// Обновить площадку
 exports.updateGround = async (req, res) => {
   try {
     if (!req.params.id) {
@@ -133,7 +129,6 @@ exports.updateGround = async (req, res) => {
   }
 };
 
-// Удалить площадку
 exports.deleteGround = async (req, res) => {
   try {
     if (!req.params.id) {

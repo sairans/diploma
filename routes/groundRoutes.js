@@ -23,6 +23,6 @@ router.delete('/:id', protect, admin, groundController.deleteGround);
 router.get('/search', groundController.searchGroundsByName);
 
 // GET GROUNDS FOR CURRENT USER
-router.get('/my', protect, groundController.getGroundsByUser);
+router.get('/my/:id', protect, groundController.getGroundsByUser);
 
 module.exports = router;
