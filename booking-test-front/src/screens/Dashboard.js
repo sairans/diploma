@@ -9,7 +9,8 @@ import {
   StyleSheet,
   Alert,
   ActivityIndicator,
-  Image
+  Image,
+  Switch
 } from 'react-native';
 import axios from 'axios';
 import * as ImagePicker from 'expo-image-picker';
@@ -24,6 +25,11 @@ export default function Dashboard() {
     location: { coordinates: [0, 0] },
     availableHours: { start: '08:00', end: '23:00' },
     availableWeekdays: [1, 2, 3, 4, 5],
+    pricePerHour: '',
+    available: true,
+    fields: [],
+    contact: { instagram: '', phone: '' },
+    info: { size: '', cover: '', balls: 'paid' },
     images: []
   });
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -31,12 +37,24 @@ export default function Dashboard() {
 
   const fetchData = async () => {
     try {
+      const token = await AsyncStorage.getItem('token'); // TODO: заменить на актуальный способ получения токена
       const resGrounds = await axios.get(
-        'http://192.168.59.11:5001/api/grounds'
+        'http://172.20.10.5:5001/api/grounds/my',
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
       );
+
+      if (resGrounds.data.grounds.length === 0) return;
+
+      const groundId = resGrounds.data.grounds[0]._id;
       const resBookings = await axios.get(
-        'http://192.168.59.11:5001/api/bookings'
+        `http://172.20.10.5:5001/api/bookings/ground/${groundId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
       );
+
       setGrounds(resGrounds.data.grounds || []);
       setBookings(resBookings.data.bookings || []);
     } catch (err) {
@@ -126,11 +144,16 @@ export default function Dashboard() {
         location: { coordinates: [lat, lng] },
         availableHours: form.availableHours,
         availableWeekdays: form.availableWeekdays,
+        pricePerHour: parseInt(form.pricePerHour),
+        available: form.available,
+        fields: form.fields,
+        contact: form.contact,
+        info: form.info,
         images: form.images
       };
 
       const res = await axios.post(
-        'http://192.168.59.11:5001/api/grounds',
+        'http://172.20.10.5:5001/api/grounds',
         newGround
       );
       Alert.alert('Success', 'Ground created');
@@ -141,6 +164,11 @@ export default function Dashboard() {
         location: { coordinates: [0, 0] },
         availableHours: { start: '08:00', end: '23:00' },
         availableWeekdays: [1, 2, 3, 4, 5],
+        pricePerHour: '',
+        available: true,
+        fields: [],
+        contact: { instagram: '', phone: '' },
+        info: { size: '', cover: '', balls: 'paid' },
         images: []
       });
       fetchData();
@@ -155,131 +183,240 @@ export default function Dashboard() {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.header}>Dashboard</Text>
+    <FlatList
+      style={styles.container}
+      data={grounds}
+      keyExtractor={(item) => item._id}
+      ListHeaderComponent={
+        <>
+          <Text style={styles.header}>Dashboard</Text>
 
-      <Text style={styles.subHeader}>Create New Ground</Text>
-      <TextInput
-        placeholder="Name"
-        style={styles.input}
-        value={form.name}
-        onChangeText={(text) => setForm({ ...form, name: text })}
-      />
-      <TextInput
-        placeholder="Type"
-        style={styles.input}
-        value={form.type}
-        onChangeText={(text) => setForm({ ...form, type: text })}
-      />
-      <TextInput
-        placeholder="Address"
-        style={styles.input}
-        value={form.address}
-        onChangeText={(text) => setForm({ ...form, address: text })}
-      />
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-        <TextInput
-          placeholder="Latitude"
-          style={[styles.input, { flex: 1, marginRight: 5 }]}
-          keyboardType="numeric"
-          value={form.location.coordinates[0].toString()}
-          onChangeText={(text) => {
-            const coords = [...form.location.coordinates];
-            coords[0] = text;
-            setForm({ ...form, location: { coordinates: coords } });
-          }}
-        />
-        <TextInput
-          placeholder="Longitude"
-          style={[styles.input, { flex: 1, marginLeft: 5 }]}
-          keyboardType="numeric"
-          value={form.location.coordinates[1].toString()}
-          onChangeText={(text) => {
-            const coords = [...form.location.coordinates];
-            coords[1] = text;
-            setForm({ ...form, location: { coordinates: coords } });
-          }}
-        />
-      </View>
-
-      <TouchableOpacity
-        style={styles.button}
-        onPress={handleImageUpload}
-        disabled={uploadingImage}
-      >
-        {uploadingImage ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.buttonText}>Upload Image</Text>
-        )}
-      </TouchableOpacity>
-
-      {form.images.length > 0 && (
-        <ScrollView horizontal style={{ marginVertical: 10 }}>
-          {form.images.map((imgUrl, index) => (
-            <Image
-              key={index.toString()}
-              source={{ uri: imgUrl }}
-              style={{
-                width: 100,
-                height: 100,
-                marginRight: 10,
-                borderRadius: 6
+          <Text style={styles.subHeader}>Create New Ground</Text>
+          <TextInput
+            placeholder="Name"
+            style={styles.input}
+            value={form.name}
+            onChangeText={(text) => setForm({ ...form, name: text })}
+          />
+          <TextInput
+            placeholder="Type"
+            style={styles.input}
+            value={form.type}
+            onChangeText={(text) => setForm({ ...form, type: text })}
+          />
+          <TextInput
+            placeholder="Address"
+            style={styles.input}
+            value={form.address}
+            onChangeText={(text) => setForm({ ...form, address: text })}
+          />
+          <View
+            style={{ flexDirection: 'row', justifyContent: 'space-between' }}
+          >
+            <TextInput
+              placeholder="Latitude"
+              style={[styles.input, { flex: 1, marginRight: 5 }]}
+              keyboardType="numeric"
+              value={form.location.coordinates[0].toString()}
+              onChangeText={(text) => {
+                const coords = [...form.location.coordinates];
+                coords[0] = text;
+                setForm({ ...form, location: { coordinates: coords } });
               }}
             />
-          ))}
-        </ScrollView>
-      )}
+            <TextInput
+              placeholder="Longitude"
+              style={[styles.input, { flex: 1, marginLeft: 5 }]}
+              keyboardType="numeric"
+              value={form.location.coordinates[1].toString()}
+              onChangeText={(text) => {
+                const coords = [...form.location.coordinates];
+                coords[1] = text;
+                setForm({ ...form, location: { coordinates: coords } });
+              }}
+            />
+          </View>
 
-      <TouchableOpacity
-        style={styles.button}
-        onPress={handleCreateGround}
-        disabled={creatingGround}
-      >
-        {creatingGround ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.buttonText}>Create Ground</Text>
-        )}
-      </TouchableOpacity>
+          <TextInput
+            placeholder="Price Per Hour"
+            keyboardType="numeric"
+            style={styles.input}
+            value={form.pricePerHour.toString()}
+            onChangeText={(text) => setForm({ ...form, pricePerHour: text })}
+          />
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              marginVertical: 8
+            }}
+          >
+            <Text>Available:</Text>
+            <Switch
+              value={form.available}
+              onValueChange={(val) => setForm({ ...form, available: val })}
+            />
+          </View>
 
-      <Text style={styles.subHeader}>Existing Grounds</Text>
-      <FlatList
-        data={grounds}
-        keyExtractor={(item) => item._id}
-        renderItem={({ item }) => (
-          <View style={styles.item}>
-            {item.images && item.images.length > 0 && (
-              <Image
-                source={{ uri: item.images[0] }}
-                style={{
-                  width: 60,
-                  height: 60,
-                  borderRadius: 6,
-                  marginBottom: 6
+          <TextInput
+            placeholder="Field Size"
+            style={styles.input}
+            value={form.info.size}
+            onChangeText={(text) =>
+              setForm({ ...form, info: { ...form.info, size: text } })
+            }
+          />
+          <TextInput
+            placeholder="Field Cover"
+            style={styles.input}
+            value={form.info.cover}
+            onChangeText={(text) =>
+              setForm({ ...form, info: { ...form.info, cover: text } })
+            }
+          />
+          <TextInput
+            placeholder="Balls (free/paid)"
+            style={styles.input}
+            value={form.info.balls}
+            onChangeText={(text) =>
+              setForm({ ...form, info: { ...form.info, balls: text } })
+            }
+          />
+
+          <TextInput
+            placeholder="Instagram"
+            style={styles.input}
+            value={form.contact.instagram}
+            onChangeText={(text) =>
+              setForm({
+                ...form,
+                contact: { ...form.contact, instagram: text }
+              })
+            }
+          />
+          <TextInput
+            placeholder="Phone"
+            style={styles.input}
+            value={form.contact.phone}
+            onChangeText={(text) =>
+              setForm({ ...form, contact: { ...form.contact, phone: text } })
+            }
+          />
+
+          {/* Render fields as .map instead of FlatList */}
+          {form.fields.map((item, index) => (
+            <View
+              key={index.toString()}
+              style={{ flexDirection: 'row', alignItems: 'center' }}
+            >
+              <TextInput
+                placeholder="Field Name"
+                style={[styles.input, { flex: 1 }]}
+                value={item.name}
+                onChangeText={(text) => {
+                  const updated = [...form.fields];
+                  updated[index].name = text;
+                  setForm({ ...form, fields: updated });
                 }}
               />
-            )}
-            <Text style={styles.itemText}>
-              {item.name} - {item.type}
-            </Text>
-          </View>
-        )}
-      />
+              <TouchableOpacity
+                onPress={() => {
+                  const updated = [...form.fields];
+                  updated.splice(index, 1);
+                  setForm({ ...form, fields: updated });
+                }}
+              >
+                <Text style={{ color: 'red', marginLeft: 10 }}>Delete</Text>
+              </TouchableOpacity>
+            </View>
+          ))}
+          <TouchableOpacity
+            onPress={() => {
+              const updated = [
+                ...form.fields,
+                { name: '', number: form.fields.length + 1, available: 1 }
+              ];
+              setForm({ ...form, fields: updated });
+            }}
+          >
+            <Text style={styles.buttonText}>+ Add Field</Text>
+          </TouchableOpacity>
 
-      <Text style={styles.subHeader}>Recent Bookings</Text>
-      <FlatList
-        data={bookings}
-        keyExtractor={(item) => item._id}
-        renderItem={({ item }) => (
-          <View style={styles.item}>
-            <Text style={styles.itemText}>
-              Ground: {item.ground.name || item.ground}, Date: {item.date}
-            </Text>
-          </View>
-        )}
-      />
-    </ScrollView>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={handleImageUpload}
+            disabled={uploadingImage}
+          >
+            {uploadingImage ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.buttonText}>Upload Image</Text>
+            )}
+          </TouchableOpacity>
+
+          {form.images.length > 0 && (
+            <ScrollView horizontal style={{ marginVertical: 10 }}>
+              {form.images.map((imgUrl, index) => (
+                <Image
+                  key={index.toString()}
+                  source={{ uri: imgUrl }}
+                  style={{
+                    width: 100,
+                    height: 100,
+                    marginRight: 10,
+                    borderRadius: 6
+                  }}
+                />
+              ))}
+            </ScrollView>
+          )}
+
+          <TouchableOpacity
+            style={styles.button}
+            onPress={handleCreateGround}
+            disabled={creatingGround}
+          >
+            {creatingGround ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.buttonText}>Create Ground</Text>
+            )}
+          </TouchableOpacity>
+
+          <Text style={styles.subHeader}>Existing Grounds</Text>
+        </>
+      }
+      renderItem={({ item }) => (
+        <View style={styles.item}>
+          {item.images && item.images.length > 0 && (
+            <Image
+              source={{ uri: item.images[0] }}
+              style={{
+                width: 60,
+                height: 60,
+                borderRadius: 6,
+                marginBottom: 6
+              }}
+            />
+          )}
+          <Text style={styles.itemText}>
+            {item.name} - {item.type}
+          </Text>
+        </View>
+      )}
+      ListFooterComponent={
+        <>
+          <Text style={styles.subHeader}>Recent Bookings</Text>
+          {bookings.map((item) => (
+            <View key={item._id} style={styles.item}>
+              <Text style={styles.itemText}>
+                Ground: {item.ground.name || item.ground}, Date: {item.date}
+              </Text>
+            </View>
+          ))}
+        </>
+      }
+    />
   );
 }
 

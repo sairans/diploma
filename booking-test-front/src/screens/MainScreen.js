@@ -23,6 +23,7 @@ export default function MainScreen() {
   const [selectedType, setSelectedType] = useState(null);
   const [heightAnim] = useState(new Animated.Value(150));
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // useFocusEffect(
   //   React.useCallback(() => {
@@ -38,7 +39,7 @@ export default function MainScreen() {
   useEffect(() => {
     const fetchGrounds = async () => {
       try {
-        const res = await axios.get('http://192.168.59.11:5001/api/grounds');
+        const res = await axios.get('http://172.20.10.5:5001/api/grounds');
         setGrounds(res.data.grounds);
       } catch (error) {
         console.error('Ошибка загрузки данных:', error);
@@ -95,9 +96,15 @@ export default function MainScreen() {
     ? grounds.filter((g) => g.type === selectedType)
     : [];
 
+  const baseGrounds = selectedType ? filteredGrounds : grounds;
+  const displayedGrounds = searchQuery
+    ? baseGrounds.filter((g) =>
+        g.name.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : baseGrounds;
+
   return (
     <View style={styles.container}>
-      {/* Top bar with icons */}
       <View style={styles.topBar}>
         <View style={styles.cityContainer}>
           <Ionicons name="location-sharp" size={18} color="#000" />
@@ -141,6 +148,8 @@ export default function MainScreen() {
             style={styles.searchInput}
             placeholder="Search..."
             placeholderTextColor="#777"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
           />
         </View>
 
@@ -163,7 +172,7 @@ export default function MainScreen() {
           <ActivityIndicator size="large" color="#000" />
         ) : (
           <FlatList
-            data={selectedType ? filteredGrounds : grounds}
+            data={displayedGrounds}
             keyExtractor={(item) => item._id}
             renderItem={({ item }) => (
               <TouchableOpacity
@@ -203,11 +212,16 @@ export default function MainScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F5F5F5' },
-  map: { height: '79%' },
+  container: {
+    flex: 1,
+    backgroundColor: '#F5F5F5'
+  },
+  map: {
+    height: '90%'
+  },
   topBar: {
     position: 'absolute',
-    top: 50,
+    top: 60,
     left: 20,
     right: 20,
     zIndex: 10,
@@ -236,54 +250,125 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#f8f8f8',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    elevation: 10
+    backgroundColor: '#ffffff',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 34, // Added padding to account for home indicator
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: -4
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 15
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f1f1f1',
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    marginBottom: 10
+    backgroundColor: '#f8f9fa',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#e9ecef',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2
+    },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 2
   },
-  icon: { marginRight: 10 },
-  searchInput: { flex: 1, fontSize: 16 },
+  icon: {
+    marginRight: 12,
+    opacity: 0.6
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: '#333',
+    fontWeight: '400'
+  },
   filters: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    borderRadius: 10
+    justifyContent: 'space-between',
+    paddingHorizontal: 4,
+    marginBottom: 8
   },
   filterButton: {
-    backgroundColor: '#f1f1f1',
-    borderRadius: 15,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    marginBottom: 10
+    backgroundColor: '#f1f3f4',
+    borderRadius: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    marginHorizontal: 4,
+    borderWidth: 1,
+    borderColor: '#e8eaed',
+    minWidth: 70,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1
   },
-  activeFilter: { backgroundColor: '#9d9d9d' },
-  filterText: { fontSize: 14, color: 'black' },
+  activeFilter: {
+    backgroundColor: '#FFFBD4',
+    borderColor: '#FFFBD4'
+  },
+  filterText: {
+    fontSize: 14,
+    color: '#333',
+    fontWeight: '500'
+  },
+  activeFilterText: {
+    color: '#ffffff',
+    fontWeight: '600'
+  },
   card: {
     backgroundColor: '#fff',
-    borderRadius: 12,
-    marginVertical: 7,
+    borderRadius: 16,
+    marginVertical: 8,
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 10,
-    elevation: 3
+    padding: 12,
+    marginHorizontal: 4,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 3
+    },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: '#f0f0f0'
   },
   venueImage: {
     width: 120,
     height: 120,
-    borderRadius: 8,
-    marginRight: 10
+    borderRadius: 12,
+    marginRight: 12
   },
-  cardDetails: { flex: 1 },
-  venueName: { fontSize: 16, fontWeight: 'bold' },
-  venueInfo: { fontSize: 14, color: '#555' }
+  cardDetails: {
+    flex: 1
+  },
+  venueName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1a1a1a',
+    marginBottom: 4
+  },
+  venueInfo: {
+    fontSize: 14,
+    color: '#666',
+    lineHeight: 20
+  }
 });

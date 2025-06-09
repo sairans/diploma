@@ -67,6 +67,15 @@ const groundSchema = new mongoose.Schema(
         type: String, // e.g., '17:00'
         required: true
       }
+    },
+    contacts: {
+      instagram: { type: String, required: false },
+      phone: { type: String, required: false }
+    },
+    info: {
+      size: { type: String, required: true },
+      cover: { type: String, required: true },
+      balls: { type: String, default: 'paid' }
     }
   },
   { timestamps: true }

@@ -34,7 +34,7 @@ export default function EditReservationPage({ route, navigation }) {
     const fetchBooking = async () => {
       const token = await AsyncStorage.getItem('token');
       const res = await axios.get(
-        `http://192.168.59.11:5001/api/bookings/${route.params?.bookingId}`,
+        `http://172.20.10.5:5001/api/bookings/${route.params?.bookingId}`,
         {
           headers: { Authorization: `Bearer ${token}` }
         }
@@ -58,11 +58,11 @@ export default function EditReservationPage({ route, navigation }) {
       try {
         const token = await AsyncStorage.getItem('token');
         const occupiedRes = await axios.get(
-          `http://192.168.59.11:5001/api/bookings/occupied?date=${date}&fieldNumber=${fieldNumber}`,
+          `http://172.20.10.5:5001/api/bookings/occupied?date=${date}&fieldNumber=${fieldNumber}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         const availableRes = await axios.get(
-          `http://192.168.59.11:5001/api/bookings/available?date=${date}&fieldNumber=${fieldNumber}`,
+          `http://172.20.10.5:5001/api/bookings/available?date=${date}&fieldNumber=${fieldNumber}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
@@ -85,7 +85,7 @@ export default function EditReservationPage({ route, navigation }) {
     try {
       const token = await AsyncStorage.getItem('token');
       await axios.put(
-        `http://192.168.59.11:5001/api/bookings/${bookingId}`,
+        `http://172.20.10.5:5001/api/bookings/${bookingId}`,
         {
           fieldNumber,
           date,

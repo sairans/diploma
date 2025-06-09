@@ -19,4 +19,10 @@ router.put('/:id', protect, admin, groundController.updateGround);
 // DELETE
 router.delete('/:id', protect, admin, groundController.deleteGround);
 
+// SEARCH
+router.get('/search', groundController.searchGroundsByName);
+
+// GET GROUNDS FOR CURRENT USER
+router.get('/my', protect, groundController.getGroundsByUser);
+
 module.exports = router;
