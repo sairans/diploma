@@ -5,7 +5,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  FlatList,
   ScrollView,
   StyleSheet,
   Alert,
@@ -18,7 +17,6 @@ import {
 import axios from 'axios';
 import * as ImagePicker from 'expo-image-picker';
 import { Picker } from '@react-native-picker/picker';
-import DateTimePicker from '@react-native-community/datetimepicker';
 
 export default function Dashboard() {
   const [grounds, setGrounds] = useState([]);
@@ -26,9 +24,12 @@ export default function Dashboard() {
   const [userId, setUserId] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedGround, setSelectedGround] = useState(null);
+  const [editMode, setEditMode] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const [form, setForm] = useState({
     name: '',
+    description: 'sport ground',
     type: 'football',
     address: '',
     location: {
@@ -39,11 +40,11 @@ export default function Dashboard() {
       start: '08:00',
       end: '22:00'
     },
-    availableWeekdays: [1, 2, 3, 4, 5, 6, 7],
+    availableWeekdays: [0, 1, 2, 3, 4, 5, 6], // Sunday=0 to Saturday=6
     pricePerHour: '',
     available: true,
     fields: [],
-    contact: {
+    contacts: {
       instagram: '',
       phone: ''
     },
@@ -52,22 +53,25 @@ export default function Dashboard() {
       cover: 'grass',
       balls: 'paid'
     },
-    images: []
+    images: ['https://example.com/placeholder-image.jpg']
   });
 
   const [uploadingImage, setUploadingImage] = useState(false);
-  const [creatingGround, setCreatingGround] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [processing, setProcessing] = useState(false);
 
   const weekdayOptions = [
+    { label: 'Sunday', value: 0 },
     { label: 'Monday', value: 1 },
     { label: 'Tuesday', value: 2 },
     { label: 'Wednesday', value: 3 },
     { label: 'Thursday', value: 4 },
     { label: 'Friday', value: 5 },
-    { label: 'Saturday', value: 6 },
-    { label: 'Sunday', value: 7 }
+    { label: 'Saturday', value: 6 }
   ];
+
+  // Cloudinary configuration
+  const CLOUD_NAME = 'your_cloud_name';
+  const UPLOAD_PRESET = 'your_upload_preset';
 
   const fetchData = async () => {
     try {
@@ -111,6 +115,33 @@ export default function Dashboard() {
     fetchData();
   }, []);
 
+  const uploadToCloudinary = async (imageUri) => {
+    try {
+      const formData = new FormData();
+      formData.append('file', {
+        uri: imageUri,
+        type: 'image/jpeg',
+        name: 'upload.jpg'
+      });
+      formData.append('upload_preset', UPLOAD_PRESET);
+
+      const response = await axios.post(
+        `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        }
+      );
+
+      return response.data.secure_url;
+    } catch (error) {
+      console.error('Cloudinary upload error:', error);
+      throw error;
+    }
+  };
+
   const handleImageUpload = async () => {
     try {
       const permissionResult =
@@ -135,12 +166,16 @@ export default function Dashboard() {
       }
 
       setUploadingImage(true);
+      const imageUrl = await uploadToCloudinary(pickerResult.uri);
 
-      // In a real app, you would upload to your server or Cloudinary here
-      // For demo, we'll just use the local URI
       setForm((prevForm) => ({
         ...prevForm,
-        images: [...prevForm.images, pickerResult.uri]
+        images: [
+          ...prevForm.images.filter(
+            (img) => img !== 'https://example.com/placeholder-image.jpg'
+          ),
+          imageUrl
+        ]
       }));
     } catch (error) {
       Alert.alert('Upload Error', 'Failed to upload image. Please try again.');
@@ -150,12 +185,18 @@ export default function Dashboard() {
     }
   };
 
-  const handleCreateGround = async () => {
+  const handleSubmit = async () => {
     try {
-      setCreatingGround(true);
+      setProcessing(true);
 
       // Validate required fields
-      if (!form.name || !form.address || !form.pricePerHour) {
+      if (
+        !form.name ||
+        !form.address ||
+        !form.pricePerHour ||
+        !form.info.size ||
+        !form.info.cover
+      ) {
         Alert.alert('Validation Error', 'Please fill all required fields');
         return;
       }
@@ -171,59 +212,139 @@ export default function Dashboard() {
         return;
       }
 
-      const newGround = {
+      const groundData = {
         ...form,
         location: {
           type: 'Point',
-          coordinates: [lng, lat] // Note: GeoJSON uses [longitude, latitude]
+          coordinates: [lng, lat] // GeoJSON uses [longitude, latitude]
         },
         pricePerHour: parseInt(form.pricePerHour),
         fields: form.fields.map((field, index) => ({
           ...field,
-          number: index + 1
-        }))
+          number: index + 1,
+          available: field.available !== false // Ensure boolean
+        })),
+        availableWeekdays: form.availableWeekdays.sort((a, b) => a - b)
       };
 
       const token = await AsyncStorage.getItem('token');
-      const res = await axios.post(
-        'http://172.20.10.5:5001/api/grounds',
-        newGround,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
 
-      Alert.alert('Success', 'Ground created successfully!');
-      setForm({
-        name: '',
-        type: 'football',
-        address: '',
-        location: {
-          type: 'Point',
-          coordinates: ['71.3875', '51.0909']
-        },
-        availableHours: { start: '08:00', end: '22:00' },
-        availableWeekdays: [1, 2, 3, 4, 5, 6, 7],
-        pricePerHour: '',
-        available: true,
-        fields: [],
-        contact: { instagram: '', phone: '' },
-        info: { size: '', cover: 'grass', balls: 'paid' },
-        images: []
-      });
+      if (editMode && selectedGround) {
+        // Update existing ground
+        await axios.put(
+          `http://172.20.10.5:5001/api/grounds/${selectedGround._id}`,
+          groundData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+        Alert.alert('Success', 'Ground updated successfully!');
+      } else {
+        // Create new ground
+        await axios.post(
+          'http://172.20.10.5:5001/api/grounds',
+          { ...groundData, owner: userId },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+        Alert.alert('Success', 'Ground created successfully!');
+      }
+
+      resetForm();
       fetchData();
     } catch (err) {
-      console.error('Error creating ground:', err);
+      console.error('Error submitting ground:', err);
       Alert.alert(
         'Error',
-        err.response?.data?.message || 'Failed to create ground'
+        err.response?.data?.message || 'Failed to submit ground'
       );
     } finally {
-      setCreatingGround(false);
+      setProcessing(false);
     }
+  };
+
+  const handleDelete = async (groundId) => {
+    try {
+      Alert.alert(
+        'Confirm Delete',
+        'Are you sure you want to delete this ground?',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel'
+          },
+          {
+            text: 'Delete',
+            onPress: async () => {
+              setProcessing(true);
+              const token = await AsyncStorage.getItem('token');
+              await axios.delete(
+                `http://172.20.10.5:5001/api/grounds/${groundId}`,
+                {
+                  headers: {
+                    Authorization: `Bearer ${token}`
+                  }
+                }
+              );
+              Alert.alert('Success', 'Ground deleted successfully!');
+              fetchData();
+            },
+            style: 'destructive'
+          }
+        ]
+      );
+    } catch (err) {
+      console.error('Error deleting ground:', err);
+      Alert.alert('Error', 'Failed to delete ground');
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handleEdit = (ground) => {
+    setSelectedGround(ground);
+    setEditMode(true);
+    setForm({
+      ...ground,
+      location: {
+        ...ground.location,
+        coordinates: ground.location.coordinates.map(String)
+      },
+      pricePerHour: String(ground.pricePerHour),
+      fields: ground.fields || [],
+      contacts: ground.contacts || { instagram: '', phone: '' },
+      info: ground.info || { size: '', cover: 'grass', balls: 'paid' }
+    });
+  };
+
+  const resetForm = () => {
+    setForm({
+      name: '',
+      description: 'sport ground',
+      type: 'football',
+      address: '',
+      location: {
+        type: 'Point',
+        coordinates: ['71.3875', '51.0909']
+      },
+      availableHours: { start: '08:00', end: '22:00' },
+      availableWeekdays: [0, 1, 2, 3, 4, 5, 6],
+      pricePerHour: '',
+      available: true,
+      fields: [],
+      contacts: { instagram: '', phone: '' },
+      info: { size: '', cover: 'grass', balls: 'paid' },
+      images: ['https://example.com/placeholder-image.jpg']
+    });
+    setEditMode(false);
+    setSelectedGround(null);
   };
 
   const toggleWeekday = (weekday) => {
@@ -239,12 +360,28 @@ export default function Dashboard() {
 
       return {
         ...prevForm,
-        availableWeekdays: newWeekdays.sort()
+        availableWeekdays: newWeekdays.sort((a, b) => a - b)
       };
     });
   };
 
-  const renderGroundDetails = (ground) => {
+  const toggleFieldAvailability = (index) => {
+    setForm((prevForm) => {
+      const updatedFields = [...prevForm.fields];
+      updatedFields[index] = {
+        ...updatedFields[index],
+        available: !updatedFields[index].available
+      };
+      return {
+        ...prevForm,
+        fields: updatedFields
+      };
+    });
+  };
+
+  const renderGroundDetails = () => {
+    if (!selectedGround) return null;
+
     return (
       <Modal
         animationType="slide"
@@ -254,45 +391,106 @@ export default function Dashboard() {
       >
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
-            <Text style={styles.modalTitle}>{ground.name}</Text>
+            <Text style={styles.modalTitle}>{selectedGround.name}</Text>
 
             <ScrollView>
               <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Description:</Text>
+                <Text style={styles.detailValue}>
+                  {selectedGround.description}
+                </Text>
+              </View>
+
+              <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Type:</Text>
-                <Text style={styles.detailValue}>{ground.type}</Text>
+                <Text style={styles.detailValue}>{selectedGround.type}</Text>
               </View>
 
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Address:</Text>
-                <Text style={styles.detailValue}>{ground.address}</Text>
+                <Text style={styles.detailValue}>{selectedGround.address}</Text>
+              </View>
+
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Coordinates:</Text>
+                <Text style={styles.detailValue}>
+                  {selectedGround.location.coordinates[1]},{' '}
+                  {selectedGround.location.coordinates[0]}
+                </Text>
               </View>
 
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Price per hour:</Text>
-                <Text style={styles.detailValue}>{ground.pricePerHour} ₸</Text>
+                <Text style={styles.detailValue}>
+                  {selectedGround.pricePerHour} ₸
+                </Text>
               </View>
 
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Working hours:</Text>
                 <Text style={styles.detailValue}>
-                  {ground.availableHours.start} - {ground.availableHours.end}
+                  {selectedGround.availableHours.start} -{' '}
+                  {selectedGround.availableHours.end}
                 </Text>
+              </View>
+
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Available days:</Text>
+                <Text style={styles.detailValue}>
+                  {selectedGround.availableWeekdays
+                    .sort((a, b) => a - b)
+                    .map(
+                      (day) =>
+                        weekdayOptions.find((d) => d.value === day)?.label
+                    )
+                    .join(', ')}
+                </Text>
+              </View>
+
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Field Info:</Text>
+                <View>
+                  <Text>Size: {selectedGround.info.size}</Text>
+                  <Text>Cover: {selectedGround.info.cover}</Text>
+                  <Text>Balls: {selectedGround.info.balls}</Text>
+                </View>
               </View>
 
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Fields:</Text>
                 <View style={styles.fieldsContainer}>
-                  {ground.fields.map((field, index) => (
-                    <View key={index} style={styles.fieldBadge}>
-                      <Text style={styles.fieldText}>{field.name}</Text>
+                  {selectedGround.fields.map((field, index) => (
+                    <View
+                      key={index}
+                      style={[
+                        styles.fieldBadge,
+                        !field.available && styles.unavailableField
+                      ]}
+                    >
+                      <Text style={styles.fieldText}>
+                        {field.number}. {field.name || 'Field'} -{' '}
+                        {field.available ? 'Available' : 'Unavailable'}
+                      </Text>
                     </View>
                   ))}
                 </View>
               </View>
 
-              {ground.images && ground.images.length > 0 && (
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Contacts:</Text>
+                <View>
+                  {selectedGround.contacts.phone && (
+                    <Text>Phone: {selectedGround.contacts.phone}</Text>
+                  )}
+                  {selectedGround.contacts.instagram && (
+                    <Text>Instagram: {selectedGround.contacts.instagram}</Text>
+                  )}
+                </View>
+              </View>
+
+              {selectedGround.images && selectedGround.images.length > 0 && (
                 <ScrollView horizontal style={styles.imageScroll}>
-                  {ground.images.map((img, idx) => (
+                  {selectedGround.images.map((img, idx) => (
                     <Image
                       key={idx}
                       source={{ uri: img }}
@@ -303,12 +501,34 @@ export default function Dashboard() {
               )}
             </ScrollView>
 
-            <Pressable
-              style={[styles.button, styles.closeButton]}
-              onPress={() => setModalVisible(false)}
-            >
-              <Text style={styles.buttonText}>Close</Text>
-            </Pressable>
+            <View style={styles.modalButtons}>
+              <Pressable
+                style={[styles.modalButton, styles.editButton]}
+                onPress={() => {
+                  setModalVisible(false);
+                  handleEdit(selectedGround);
+                }}
+              >
+                <Text style={styles.buttonText}>Edit</Text>
+              </Pressable>
+
+              <Pressable
+                style={[styles.modalButton, styles.deleteButton]}
+                onPress={() => {
+                  setModalVisible(false);
+                  handleDelete(selectedGround._id);
+                }}
+              >
+                <Text style={styles.buttonText}>Delete</Text>
+              </Pressable>
+
+              <Pressable
+                style={[styles.modalButton, styles.closeButton]}
+                onPress={() => setModalVisible(false)}
+              >
+                <Text style={styles.buttonText}>Close</Text>
+              </Pressable>
+            </View>
           </View>
         </View>
       </Modal>
@@ -327,15 +547,33 @@ export default function Dashboard() {
     <ScrollView style={styles.container}>
       <Text style={styles.header}>My Sports Grounds</Text>
 
-      {/* Create New Ground Form */}
+      {/* Ground Form */}
       <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Create New Ground</Text>
+        <Text style={styles.sectionTitle}>
+          {editMode ? `Edit ${form.name}` : 'Create New Ground'}
+          {editMode && (
+            <TouchableOpacity
+              style={styles.cancelEditButton}
+              onPress={resetForm}
+            >
+              <Text style={styles.cancelEditText}>Cancel</Text>
+            </TouchableOpacity>
+          )}
+        </Text>
 
         <TextInput
           placeholder="Ground Name*"
           style={styles.input}
           value={form.name}
           onChangeText={(text) => setForm({ ...form, name: text })}
+        />
+
+        <TextInput
+          placeholder="Description"
+          style={styles.input}
+          value={form.description}
+          onChangeText={(text) => setForm({ ...form, description: text })}
+          multiline
         />
 
         <View style={styles.pickerContainer}>
@@ -346,8 +584,8 @@ export default function Dashboard() {
           >
             <Picker.Item label="Football" value="football" />
             <Picker.Item label="Basketball" value="basketball" />
-            <Picker.Item label="Tennis" value="tennis" />
             <Picker.Item label="Volleyball" value="volleyball" />
+            <Picker.Item label="Tennis" value="tennis" />
             <Picker.Item label="Other" value="other" />
           </Picker>
         </View>
@@ -409,7 +647,7 @@ export default function Dashboard() {
         </View>
 
         <View style={styles.timeContainer}>
-          <Text style={styles.timeLabel}>Opening Time:</Text>
+          <Text style={styles.timeLabel}>Opening Time* (HH:mm):</Text>
           <TextInput
             style={[styles.input, styles.timeInput]}
             value={form.availableHours.start}
@@ -422,7 +660,7 @@ export default function Dashboard() {
             placeholder="08:00"
           />
 
-          <Text style={styles.timeLabel}>Closing Time:</Text>
+          <Text style={styles.timeLabel}>Closing Time* (HH:mm):</Text>
           <TextInput
             style={[styles.input, styles.timeInput]}
             value={form.availableHours.end}
@@ -486,7 +724,7 @@ export default function Dashboard() {
           </View>
 
           <TextInput
-            placeholder="Field Size (e.g., 105x68)"
+            placeholder="Field Size* (e.g., 105x68)"
             style={styles.input}
             value={form.info.size}
             onChangeText={(text) =>
@@ -521,38 +759,26 @@ export default function Dashboard() {
           <TextInput
             placeholder="Instagram Handle"
             style={styles.input}
-            value={form.contact.instagram}
+            value={form.contacts.instagram}
             onChangeText={(text) =>
               setForm({
                 ...form,
-                contact: { ...form.contact, instagram: text }
+                contacts: { ...form.contacts, instagram: text }
               })
             }
           />
 
           <TextInput
-            placeholder="Phone Number*"
+            placeholder="Phone Number"
             style={styles.input}
-            value={form.contact.phone}
+            value={form.contacts.phone}
             onChangeText={(text) =>
               setForm({
                 ...form,
-                contact: { ...form.contact, phone: text }
+                contacts: { ...form.contacts, phone: text }
               })
             }
             keyboardType="phone-pad"
-          />
-        </View>
-
-        <View style={styles.contactContainer}>
-          <Text style={styles.sectionSubtitle}>Description:</Text>
-          <TextInput
-            placeholder="Description of the ground"
-            style={styles.input}
-            value={form.description}
-            onChangeText={(text) => setForm({ ...form, description: text })}
-            multiline
-            numberOfLines={3}
           />
         </View>
 
@@ -572,6 +798,14 @@ export default function Dashboard() {
                 }}
               />
 
+              <View style={styles.fieldAvailabilityContainer}>
+                <Text>Available:</Text>
+                <Switch
+                  value={field.available !== false}
+                  onValueChange={() => toggleFieldAvailability(index)}
+                />
+              </View>
+
               <TouchableOpacity
                 style={styles.deleteButton}
                 onPress={() => {
@@ -588,7 +822,7 @@ export default function Dashboard() {
           <TouchableOpacity
             style={styles.addButton}
             onPress={() => {
-              const updated = [...form.fields, { name: '', available: 1 }];
+              const updated = [...form.fields, { name: '', available: true }];
               setForm({ ...form, fields: updated });
             }}
           >
@@ -621,7 +855,13 @@ export default function Dashboard() {
                     onPress={() => {
                       const updated = [...form.images];
                       updated.splice(index, 1);
-                      setForm({ ...form, images: updated });
+                      setForm({
+                        ...form,
+                        images:
+                          updated.length > 0
+                            ? updated
+                            : ['https://example.com/placeholder-image.jpg']
+                      });
                     }}
                   >
                     <Text style={styles.removeImageText}>×</Text>
@@ -632,17 +872,35 @@ export default function Dashboard() {
           )}
         </View>
 
-        <TouchableOpacity
-          style={[styles.button, styles.submitButton]}
-          onPress={handleCreateGround}
-          disabled={creatingGround}
-        >
-          {creatingGround ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.buttonText}>Create Ground</Text>
+        <View style={styles.formButtons}>
+          <TouchableOpacity
+            style={[styles.button, styles.submitButton]}
+            onPress={handleSubmit}
+            disabled={processing}
+          >
+            {processing ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.buttonText}>
+                {editMode ? 'Update Ground' : 'Create Ground'}
+              </Text>
+            )}
+          </TouchableOpacity>
+
+          {editMode && (
+            <TouchableOpacity
+              style={[styles.button, styles.deleteButton]}
+              onPress={() => handleDelete(selectedGround._id)}
+              disabled={processing}
+            >
+              {processing ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.buttonText}>Delete Ground</Text>
+              )}
+            </TouchableOpacity>
           )}
-        </TouchableOpacity>
+        </View>
       </View>
 
       {/* Existing Grounds */}
@@ -673,6 +931,9 @@ export default function Dashboard() {
                 <Text style={styles.groundType}>{ground.type}</Text>
                 <Text style={styles.groundPrice}>
                   {ground.pricePerHour} ₸/hour
+                </Text>
+                <Text style={styles.groundDescription} numberOfLines={2}>
+                  {ground.description}
                 </Text>
               </View>
 
@@ -723,11 +984,10 @@ export default function Dashboard() {
         )}
       </View>
 
-      {selectedGround && renderGroundDetails(selectedGround)}
+      {renderGroundDetails()}
     </ScrollView>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -742,8 +1002,8 @@ const styles = StyleSheet.create({
   header: {
     fontSize: 28,
     fontWeight: 'bold',
-    marginTop: 40,
     marginBottom: 20,
+    marginTop: 40,
     color: '#1d4ed8',
     textAlign: 'center'
   },
@@ -814,19 +1074,15 @@ const styles = StyleSheet.create({
     color: '#555'
   },
   timeContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
     marginBottom: 12
   },
   timeLabel: {
-    width: '100%',
     fontSize: 16,
     color: '#555',
     marginBottom: 8
   },
   timeInput: {
-    width: '48%'
+    marginBottom: 12
   },
   weekdaysContainer: {
     marginBottom: 16
@@ -866,13 +1122,6 @@ const styles = StyleSheet.create({
   fieldsContainer: {
     marginBottom: 16
   },
-  // fieldButton: {
-  //   backgroundColor: '#1d4ed8',
-  //   padding: 12,
-  //   borderRadius: 8,
-  //   alignItems: 'left',
-  //   marginBottom: 8
-  // },
   fieldInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -882,10 +1131,15 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: 8
   },
+  fieldAvailabilityContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 8
+  },
   deleteButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 80,
+    height: 35,
+    borderRadius: 8,
     backgroundColor: '#ff4444',
     justifyContent: 'center',
     alignItems: 'center'
@@ -947,6 +1201,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     lineHeight: 16
   },
+  formButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 16
+  },
   button: {
     padding: 16,
     borderRadius: 8,
@@ -955,12 +1214,22 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     backgroundColor: '#1d4ed8',
-    marginTop: 8
+    flex: 1,
+    marginRight: 8
   },
   buttonText: {
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 16
+  },
+  cancelEditButton: {
+    position: 'absolute',
+    right: 0,
+    padding: 8
+  },
+  cancelEditText: {
+    color: '#1d4ed8',
+    fontWeight: '500'
   },
   groundItem: {
     flexDirection: 'row',
@@ -971,8 +1240,8 @@ const styles = StyleSheet.create({
     marginBottom: 8
   },
   groundImage: {
-    width: 60,
-    height: 60,
+    width: 80,
+    height: 80,
     borderRadius: 8,
     marginRight: 12
   },

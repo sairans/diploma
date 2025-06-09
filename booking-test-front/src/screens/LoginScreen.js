@@ -45,7 +45,7 @@ export default function LoginScreen({ navigation }) {
       <Image source={require('../../assets/favicon.png')} style={styles.logo} />
 
       <Text style={styles.title}>SIGN IN</Text>
-      <Text style={styles.subtitle}>Enter your phone number and password</Text>
+      <Text style={styles.subtitle}>Enter your email and password</Text>
 
       {/* Поле ввода телефона */}
       <View style={styles.inputContainer}>
