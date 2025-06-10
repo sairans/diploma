@@ -1,4 +1,5 @@
 const Ground = require('../models/ground');
+const cloudinary = require('../utils/cloudinary');
 
 exports.getAllGrounds = async (req, res) => {
   try {
@@ -139,5 +140,17 @@ exports.deleteGround = async (req, res) => {
     res.json({ message: 'Ground deleted' });
   } catch (err) {
     res.status(500).json({ message: err.message });
+  }
+};
+
+exports.deleteImage = async (req, res) => {
+  try {
+    const { publicId } = req.body;
+    if (!publicId) return res.status(400).json({ message: 'No publicId' });
+
+    const result = await cloudinary.uploader.destroy(publicId);
+    res.json({ message: 'Image deleted', result });
+  } catch (err) {
+    res.status(500).json({ message: 'Error deleting image', error: err });
   }
 };

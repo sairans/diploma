@@ -631,7 +631,8 @@ const styles = StyleSheet.create({
     fontWeight: '600'
   },
   reviewsList: {
-    gap: 16
+    gap: 16,
+    marginBottom: 20
   },
   emptyReviews: {
     alignItems: 'center',
@@ -702,6 +703,7 @@ const styles = StyleSheet.create({
   },
   photosContainer: {
     paddingHorizontal: 20,
+    paddingBottom: 20,
     gap: 12
   },
   photoItem: {

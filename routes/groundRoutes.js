@@ -25,4 +25,7 @@ router.get('/search', groundController.searchGroundsByName);
 // GET GROUNDS FOR CURRENT USER
 router.get('/my/:id', protect, groundController.getGroundsByUser);
 
+// DELETE IMAGE
+router.post('/delete-image', protect, groundController.deleteImage);
+
 module.exports = router;

@@ -26,6 +26,39 @@ export default function Dashboard() {
   const [selectedGround, setSelectedGround] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [originalData, setOriginalData] = useState(null);
+
+  useEffect(() => {
+    if (editMode && selectedGround) {
+      setForm(selectedGround);
+      setOriginalData(selectedGround);
+    }
+  }, [selectedGround, editMode]);
+
+  function getChangedFields(original, updated) {
+    const changed = {};
+
+    for (const key in updated) {
+      if (
+        typeof updated[key] === 'object' &&
+        updated[key] !== null &&
+        !Array.isArray(updated[key])
+      ) {
+        const deep = getChangedFields(original[key] || {}, updated[key]);
+        if (Object.keys(deep).length > 0) changed[key] = deep;
+      } else if (Array.isArray(updated[key])) {
+        if (JSON.stringify(original[key]) !== JSON.stringify(updated[key])) {
+          changed[key] = updated[key];
+        }
+      } else {
+        if (updated[key] !== original[key]) {
+          changed[key] = updated[key];
+        }
+      }
+    }
+
+    return changed;
+  }
 
   const [form, setForm] = useState({
     name: '',
@@ -53,7 +86,7 @@ export default function Dashboard() {
       cover: 'grass',
       balls: 'paid'
     },
-    images: ['https://example.com/placeholder-image.jpg']
+    images: []
   });
 
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -70,8 +103,8 @@ export default function Dashboard() {
   ];
 
   // Cloudinary configuration
-  const CLOUD_NAME = 'your_cloud_name';
-  const UPLOAD_PRESET = 'your_upload_preset';
+  const CLOUD_NAME = 'dnpym2yjn';
+  const UPLOAD_PRESET = 'mobile_upload';
 
   const fetchData = async () => {
     try {
@@ -121,7 +154,7 @@ export default function Dashboard() {
       formData.append('file', {
         uri: imageUri,
         type: 'image/jpeg',
-        name: 'upload.jpg'
+        name: 'photo.jpg'
       });
       formData.append('upload_preset', UPLOAD_PRESET);
 
@@ -144,42 +177,34 @@ export default function Dashboard() {
 
   const handleImageUpload = async () => {
     try {
-      const permissionResult =
+      const { granted } =
         await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (permissionResult.granted === false) {
-        Alert.alert(
-          'Permission Denied',
-          'Permission to access gallery is required!'
-        );
+      if (!granted) {
+        Alert.alert('Permission Denied', 'Need access to camera roll');
         return;
       }
 
-      const pickerResult = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      const result = await ImagePicker.launchImageLibraryAsync({
         allowsEditing: true,
-        aspect: [4, 3],
-        quality: 0.8
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 0.8,
+        aspect: [4, 3]
       });
 
-      if (pickerResult.cancelled) {
-        return;
-      }
+      if (result.canceled || !result.assets || !result.assets[0]) return;
+
+      const imageUri = result.assets[0].uri;
 
       setUploadingImage(true);
-      const imageUrl = await uploadToCloudinary(pickerResult.uri);
+      const imageUrl = await uploadToCloudinary(imageUri);
 
-      setForm((prevForm) => ({
-        ...prevForm,
-        images: [
-          ...prevForm.images.filter(
-            (img) => img !== 'https://example.com/placeholder-image.jpg'
-          ),
-          imageUrl
-        ]
+      setForm((prev) => ({
+        ...prev,
+        images: [...(prev.images || []), imageUrl]
       }));
     } catch (error) {
-      Alert.alert('Upload Error', 'Failed to upload image. Please try again.');
-      console.error('Image upload error:', error);
+      console.error('Image upload failed:', error);
+      Alert.alert('Upload Failed', 'Please try again');
     } finally {
       setUploadingImage(false);
     }
@@ -194,8 +219,8 @@ export default function Dashboard() {
         !form.name ||
         !form.address ||
         !form.pricePerHour ||
-        !form.info.size ||
-        !form.info.cover
+        !form.info?.size ||
+        !form.info?.cover
       ) {
         Alert.alert('Validation Error', 'Please fill all required fields');
         return;
@@ -231,29 +256,27 @@ export default function Dashboard() {
 
       if (editMode && selectedGround) {
         // Update existing ground
+        console.log('SUBMITTING GROUND DATA:', groundData);
+        const { _id, __v, createdAt, updatedAt, ...cleanData } = groundData;
+        const changedFields = getChangedFields(originalData, groundData);
         await axios.put(
           `http://172.20.10.5:5001/api/grounds/${selectedGround._id}`,
-          groundData,
+          changedFields,
           {
             headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json'
+              Authorization: `Bearer ${token}`
             }
           }
         );
         Alert.alert('Success', 'Ground updated successfully!');
       } else {
         // Create new ground
-        await axios.post(
-          'http://172.20.10.5:5001/api/grounds',
-          { ...groundData, owner: userId },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
+        await axios.post('http://172.20.10.5:5001/api/grounds', groundData, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
           }
-        );
+        });
         Alert.alert('Success', 'Ground created successfully!');
       }
 
@@ -503,7 +526,7 @@ export default function Dashboard() {
 
             <View style={styles.modalButtons}>
               <Pressable
-                style={[styles.modalButton, styles.editButton]}
+                style={[styles.modalButton, styles.closeButton]}
                 onPress={() => {
                   setModalVisible(false);
                   handleEdit(selectedGround);
@@ -538,7 +561,7 @@ export default function Dashboard() {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#1d4ed8" />
+        <ActivityIndicator size="large" color="#ffeb24" />
       </View>
     );
   }
@@ -641,8 +664,8 @@ export default function Dashboard() {
           <Switch
             value={form.available}
             onValueChange={(val) => setForm({ ...form, available: val })}
-            trackColor={{ false: '#767577', true: '#81b0ff' }}
-            thumbColor={form.available ? '#1d4ed8' : '#f4f3f4'}
+            trackColor={{ false: '#767577', true: '#FFFBD4' }}
+            thumbColor={form.available ? '#FFFBD4' : '#FFFBD4'}
           />
         </View>
 
@@ -787,8 +810,10 @@ export default function Dashboard() {
 
           {form.fields.map((field, index) => (
             <View key={index} style={styles.fieldInputContainer}>
+              <Text style={styles.label}>Field/Court Name:</Text>
+
               <TextInput
-                placeholder={`Field ${index + 1} Name`}
+                placeholder={`Field ${index + 1}`}
                 style={[styles.input, styles.fieldInput]}
                 value={field.name}
                 onChangeText={(text) => {
@@ -798,24 +823,26 @@ export default function Dashboard() {
                 }}
               />
 
-              <View style={styles.fieldAvailabilityContainer}>
-                <Text>Available:</Text>
-                <Switch
-                  value={field.available !== false}
-                  onValueChange={() => toggleFieldAvailability(index)}
-                />
-              </View>
+              <View style={styles.fieldBottomRow}>
+                <View style={styles.fieldAvailabilityContainer}>
+                  <Text>Available:</Text>
+                  <Switch
+                    value={field.available !== false}
+                    onValueChange={() => toggleFieldAvailability(index)}
+                  />
+                </View>
 
-              <TouchableOpacity
-                style={styles.deleteButton}
-                onPress={() => {
-                  const updated = [...form.fields];
-                  updated.splice(index, 1);
-                  setForm({ ...form, fields: updated });
-                }}
-              >
-                <Text style={styles.deleteButtonText}>×</Text>
-              </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={() => {
+                    const updated = [...form.fields];
+                    updated.splice(index, 1);
+                    setForm({ ...form, fields: updated });
+                  }}
+                >
+                  <Text style={styles.deleteButtonText}>×</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           ))}
 
@@ -856,11 +883,7 @@ export default function Dashboard() {
                       const updated = [...form.images];
                       updated.splice(index, 1);
                       setForm({
-                        ...form,
-                        images:
-                          updated.length > 0
-                            ? updated
-                            : ['https://example.com/placeholder-image.jpg']
+                        ...form
                       });
                     }}
                   >
@@ -977,7 +1000,7 @@ export default function Dashboard() {
               </Text>
               <Text style={styles.bookingText}>
                 <Text style={styles.bookingLabel}>Hours:</Text>{' '}
-                {booking.hours.join(', ')}
+                {(booking.timeSlot || []).join(', ')}
               </Text>
             </View>
           ))
@@ -1004,7 +1027,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 20,
     marginTop: 40,
-    color: '#1d4ed8',
+    color: '#000000',
     textAlign: 'center'
   },
   card: {
@@ -1103,15 +1126,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff'
   },
   weekdayButtonSelected: {
-    backgroundColor: '#1d4ed8',
-    borderColor: '#1d4ed8'
+    backgroundColor: '#FFFBD4',
+    borderColor: '#FFFBD4'
   },
   weekdayText: {
     fontSize: 16,
     color: '#555'
   },
   weekdayTextSelected: {
-    color: '#fff'
+    color: '#000000'
   },
   infoContainer: {
     marginBottom: 16
@@ -1119,46 +1142,57 @@ const styles = StyleSheet.create({
   contactContainer: {
     marginBottom: 16
   },
-  fieldsContainer: {
-    marginBottom: 16
-  },
   fieldInputContainer: {
+    marginBottom: 16,
+    backgroundColor: '#f9f9f9',
+    padding: 12,
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4
+  },
+
+  label: {
+    marginBottom: 6,
+    fontWeight: '600'
+  },
+
+  fieldBottomRow: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8
+    marginTop: 10
   },
-  fieldInput: {
-    flex: 1,
-    marginRight: 8
-  },
+
   fieldAvailabilityContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginRight: 8
+    marginRight: 10,
+    gap: 10
   },
+
   deleteButton: {
-    width: 80,
-    height: 35,
-    borderRadius: 8,
-    backgroundColor: '#ff4444',
-    justifyContent: 'center',
-    alignItems: 'center'
+    backgroundColor: '#ef4444',
+    marginTop: 15,
+    padding: 10,
+    borderRadius: 8
   },
+
   deleteButtonText: {
     color: '#fff',
-    fontSize: 20,
-    fontWeight: 'bold',
-    lineHeight: 20
+    fontSize: 16,
+    fontWeight: 'bold'
   },
   addButton: {
-    backgroundColor: '#1d4ed8',
+    backgroundColor: '#FFFBD4',
     padding: 12,
     borderRadius: 8,
     alignItems: 'center',
     marginTop: 8
   },
   addButtonText: {
-    color: '#fff',
+    color: '#00000',
     fontWeight: 'bold',
     fontSize: 16
   },
@@ -1166,7 +1200,7 @@ const styles = StyleSheet.create({
     marginBottom: 16
   },
   uploadButton: {
-    backgroundColor: '#1d4ed8',
+    backgroundColor: '#FFFBD4',
     padding: 12,
     borderRadius: 8,
     alignItems: 'center',
@@ -1190,6 +1224,7 @@ const styles = StyleSheet.create({
     right: -8,
     width: 24,
     height: 24,
+    marginTop: 8,
     borderRadius: 12,
     backgroundColor: '#ff4444',
     justifyContent: 'center',
@@ -1213,12 +1248,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   submitButton: {
-    backgroundColor: '#1d4ed8',
+    backgroundColor: '#FFFBD4',
     flex: 1,
     marginRight: 8
   },
   buttonText: {
-    color: '#fff',
+    color: '#00000',
     fontWeight: 'bold',
     fontSize: 16
   },
@@ -1260,7 +1295,7 @@ const styles = StyleSheet.create({
   },
   groundPrice: {
     fontSize: 14,
-    color: '#1d4ed8',
+    color: '#ffeb24',
     marginTop: 2,
     fontWeight: '500'
   },
@@ -1368,7 +1403,7 @@ const styles = StyleSheet.create({
     marginRight: 10
   },
   closeButton: {
-    backgroundColor: '#1d4ed8',
+    backgroundColor: '#FFFBD4',
     marginTop: 15,
     padding: 10,
     borderRadius: 8
