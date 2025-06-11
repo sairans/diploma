@@ -70,7 +70,7 @@ exports.createGround = async (req, res) => {
     };
 
     if (!Array.isArray(req.body.availableWeekdays)) {
-      req.body.availableWeekdays = [1, 2, 3, 4, 5]; // по умолчанию Пн–Пт
+      req.body.availableWeekdays = [1, 2, 3, 4, 5];
     }
 
     const saved = await ground.save();

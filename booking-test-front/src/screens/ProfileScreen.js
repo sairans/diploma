@@ -52,7 +52,6 @@ export default function ProfileScreen({ navigation }) {
         ...prev,
         name: routeUser.name,
         phone: routeUser.phone
-        // опционально можно добавить avatar, если он есть в объекте
       }));
     }
   }, [routeUser]);

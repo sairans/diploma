@@ -19,7 +19,7 @@ const groundSchema = new mongoose.Schema(
         default: 'Point'
       },
       coordinates: {
-        type: [Number], // [longitude, latitude]
+        type: [Number],
         required: true
       }
     },
@@ -43,7 +43,7 @@ const groundSchema = new mongoose.Schema(
       default: true
     },
     availableWeekdays: {
-      type: [Number], // 0=Воскресенье, 1=Понедельник, ..., 6=Суббота
+      type: [Number],
       default: [0, 1, 2, 3, 4, 5, 6] // Пн–Пт
     },
     images: {
@@ -60,11 +60,11 @@ const groundSchema = new mongoose.Schema(
     ],
     availableHours: {
       start: {
-        type: String, // Use 'HH:mm' format (24h) — e.g., '09:00'
+        type: String,
         required: true
       },
       end: {
-        type: String, // e.g., '17:00'
+        type: String,
         required: true
       }
     },

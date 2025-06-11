@@ -3,12 +3,10 @@ const User = require('../models/user');
 const Ground = require('../models/ground');
 const { sendEmail } = require('../utils/emailService');
 
-// Create booking
 exports.createBooking = async (req, res) => {
   try {
     const { ground, fieldNumber, date, timeSlot } = req.body;
 
-    // 1. Валидация входных данных
     if (!ground || !date || !timeSlot?.length) {
       return res
         .status(400)
@@ -21,7 +19,6 @@ exports.createBooking = async (req, res) => {
         .json({ message: 'Не указан номер поля (fieldNumber)' });
     }
 
-    // 2. Проверка существования площадки
     const groundData = await Ground.findById(ground);
     const selectedField = groundData.fields.find(
       (f) => f.number === fieldNumber
@@ -40,7 +37,6 @@ exports.createBooking = async (req, res) => {
       return res.status(404).json({ message: 'Площадка не найдена' });
     }
 
-    // 3. Проверка дня недели
     const bookingDate = new Date(date);
     if (isNaN(bookingDate)) {
       return res.status(400).json({ message: 'Неверный формат даты' });
@@ -53,7 +49,6 @@ exports.createBooking = async (req, res) => {
       });
     }
 
-    // 4. Проверка пересечения временных слото
     const existingBookings = await Booking.find({
       ground,
       fieldNumber,
@@ -93,13 +88,11 @@ exports.createBooking = async (req, res) => {
       });
     }
 
-    // Calculate total price
     const duration = timeSlot.length;
     const totalPrice = groundData.pricePerHour
       ? groundData.pricePerHour * duration
       : 0;
 
-    // 5. Создание бронирования
     const booking = new Booking({
       user: req.user._id,
       ground,
@@ -111,7 +104,6 @@ exports.createBooking = async (req, res) => {
 
     await booking.save();
 
-    // 6. Отправка email
     const user = await User.findById(req.user._id);
     if (user?.email) {
       const html = `
@@ -139,7 +131,6 @@ exports.createBooking = async (req, res) => {
   }
 };
 
-// Вспомогательная функция для названий дней недели
 function getWeekdayName(dayNumber) {
   const weekdays = [
     'воскресеньям',
@@ -153,7 +144,6 @@ function getWeekdayName(dayNumber) {
   return weekdays[dayNumber] || 'неизвестному дню';
 }
 
-// Get my bookings
 exports.getMyBookings = async (req, res) => {
   try {
     const bookings = await Booking.find({ user: req.user._id }).populate(
@@ -165,7 +155,6 @@ exports.getMyBookings = async (req, res) => {
   }
 };
 
-// Get all bookings (admin)
 exports.getAllBookings = async (req, res) => {
   try {
     const bookings = await Booking.find().populate('user').populate('ground');
@@ -175,7 +164,6 @@ exports.getAllBookings = async (req, res) => {
   }
 };
 
-// Update booking
 exports.updateBooking = async (req, res) => {
   try {
     const booking = await Booking.findById(req.params.id);
@@ -193,7 +181,7 @@ exports.updateBooking = async (req, res) => {
     if (date) {
       const selectedDate = new Date(date);
       const today = new Date();
-      today.setHours(0, 0, 0, 0); // Сбрасываем время для сравнения только дат
+      today.setHours(0, 0, 0, 0);
 
       if (selectedDate < today) {
         return res
@@ -246,7 +234,6 @@ exports.updateBooking = async (req, res) => {
   }
 };
 
-// Delete booking
 exports.deleteBooking = async (req, res) => {
   try {
     const booking = await Booking.findById(req.params.id);
@@ -280,12 +267,11 @@ exports.deleteBooking = async (req, res) => {
   }
 };
 
-// Get occupied time slots for a ground and date
 exports.getOccupiedSlots = async (req, res) => {
   try {
-    const { groundId, date, fieldNumber } = req.query; // Передаем fieldNumber
+    const { groundId, date, fieldNumber } = req.query;
     if (!groundId || !date || !fieldNumber) {
-      // Проверяем, что есть groundId, date, fieldNumber
+
       return res
         .status(400)
         .json({ message: 'groundId, date и fieldNumber обязательны' });
@@ -294,13 +280,13 @@ exports.getOccupiedSlots = async (req, res) => {
       ground: groundId,
       date,
       fieldNumber
-    }); // Учитываем поле
+    });
     const timeSlots = bookings.flatMap(
       (b) =>
         b.timeSlot.map((slot) => ({
           slot: slot.trim(),
           fieldNumber: b.fieldNumber
-        })) // Добавляем fieldNumber
+        }))
     );
     res.json({ occupiedSlots: timeSlots });
   } catch (err) {
@@ -310,7 +296,6 @@ exports.getOccupiedSlots = async (req, res) => {
   }
 };
 
-// Get available time slots for a ground and date
 exports.getAvailableSlots = async (req, res) => {
   try {
     const { groundId, date, fieldNumber } = req.query;
@@ -382,7 +367,6 @@ exports.getAvailableSlots = async (req, res) => {
   }
 };
 
-// Get nearby grounds based on location
 exports.getNearbyGrounds = async (req, res) => {
   try {
     const { latitude, longitude, radius = 5000 } = req.query; // радиус по умолчанию 5км
@@ -412,7 +396,6 @@ exports.getNearbyGrounds = async (req, res) => {
   }
 };
 
-// Get bookings by ground ID
 exports.getBookingsByGround = async (req, res) => {
   try {
     const { groundId } = req.params;
