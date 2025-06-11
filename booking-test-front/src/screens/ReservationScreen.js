@@ -36,7 +36,7 @@ export default function ReservationPage() {
 
   const today = new Date().toISOString().split('T')[0];
   const isPastTime = (slot) => {
-    if (!slot || date !== today) return false; // Проверяем, что slot существует
+    if (!slot || date !== today) return false;
     const nowHour = new Date().getHours();
     const slotHour = parseInt(slot.split(':')[0]);
     return slotHour <= nowHour;
@@ -70,9 +70,9 @@ export default function ReservationPage() {
     const fetchGroundData = async () => {
       try {
         const res = await axios.get(
-          `http://localhost:5001/api/grounds/${groundId}`
+          `http://172.20.10.5:5001/api/grounds/${groundId}`
         );
-        setPricePerHour(res.data.pricePerHour); // Получаем цену за час с БД
+        setPricePerHour(res.data.pricePerHour);
       } catch (err) {
         console.error('Error fetching ground data:', err);
       }
@@ -92,7 +92,7 @@ export default function ReservationPage() {
   };
 
   const calculateDuration = () => {
-    if (selectedSlots.length < 2) return 1; // Если выбрано меньше двух слотов, длительность 1 час
+    if (selectedSlots.length < 2) return 1;
     const sortedSlots = selectedSlots.slice().sort((a, b) => {
       const aHour = parseInt(a.split(':')[0]);
       const bHour = parseInt(b.split(':')[0]);
@@ -102,12 +102,12 @@ export default function ReservationPage() {
     const lastSlot = sortedSlots[sortedSlots.length - 1];
     const firstHour = parseInt(firstSlot.split(':')[0]);
     const lastHour = parseInt(lastSlot.split(':')[0]);
-    return lastHour - firstHour + 1; // Разница между первым и последним слотом + 1 час
+    return lastHour - firstHour + 1;
   };
 
   const calculateTotal = () => {
     const duration = calculateDuration();
-    return duration * 5000; // 5000 тг/час
+    return duration * 5000;
   };
 
   const handleSubmit = async () => {
@@ -132,7 +132,7 @@ export default function ReservationPage() {
           fieldNumber: fieldNumber,
           date: date,
           timeSlot: selectedSlots,
-          paymentMethod: paymentMethod // Добавляем выбранный метод оплаты
+          paymentMethod: paymentMethod
         },
         {
           headers: {
@@ -237,7 +237,7 @@ export default function ReservationPage() {
 
                 return (
                   <TouchableOpacity
-                    key={index} // Используем индекс или slot для ключа
+                    key={index}
                     disabled={disabled}
                     onPress={() => handleSlotSelection(slot)}
                     style={[
@@ -366,7 +366,7 @@ const styles = StyleSheet.create({
     color: '#1d1f1e'
   },
   selectedSlot: {
-    backgroundColor: '#FDE047', // Цвет для выбранного слота
+    backgroundColor: '#FDE047',
     borderColor: '#FDE047'
   },
   safeArea: {
@@ -489,7 +489,7 @@ const styles = StyleSheet.create({
     marginVertical: 5
   },
   selectedPaymentMethod: {
-    backgroundColor: '#FDE047', // Цвет выбранного метода
+    backgroundColor: '#FDE047',
     borderColor: '#FDE047'
   }
 });

@@ -178,7 +178,6 @@ const styles = StyleSheet.create({
   },
   container: {
     padding: 10,
-    // paddingBottom: 100, // чтобы контент не перекрывался навигацией
     flex: 1,
     backgroundColor: '#fff'
   },
