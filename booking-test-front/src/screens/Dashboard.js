@@ -847,13 +847,13 @@ export default function Dashboard() {
           ))}
 
           <TouchableOpacity
-            style={styles.addButton}
+            style={styles.uploadButton}
             onPress={() => {
               const updated = [...form.fields, { name: '', available: true }];
               setForm({ ...form, fields: updated });
             }}
           >
-            <Text style={styles.addButtonText}>+ Add Field</Text>
+            <Text style={styles.buttonText}>+ Add Field</Text>
           </TouchableOpacity>
         </View>
 
@@ -1378,25 +1378,53 @@ const styles = StyleSheet.create({
     color: '#333'
   },
   fieldsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: 8,
-    marginHorizontal: -4 // Negative margin to offset badge margins
+    width: '100%', // Make container take full width
+    marginTop: 8
   },
-  fieldBadge: {
-    backgroundColor: '#f1f5f9',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-    marginHorizontal: 4,
-    marginVertical: 3,
+  fieldInputContainer: {
+    width: '100%', // Make each field container full width
+    marginBottom: 16,
+    padding: 12,
+    backgroundColor: '#f8f9fa',
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#e2e8f0'
+    borderColor: '#e9ecef'
   },
-  fieldText: {
-    color: '#475569',
+  label: {
     fontSize: 14,
-    fontWeight: '500'
+    fontWeight: '500',
+    marginBottom: 8,
+    color: '#495057'
+  },
+  input: {
+    width: '100%', // Make input full width
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#ced4da',
+    borderRadius: 4,
+    marginBottom: 12,
+    backgroundColor: '#fff'
+  },
+  fieldInput: {
+    fontSize: 16
+  },
+  fieldBottomRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%'
+  },
+  fieldAvailabilityContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8
+  },
+  deleteButton: {
+    padding: 8
+  },
+  deleteButtonText: {
+    fontSize: 20,
+    color: '#dc3545'
   },
   imageScroll: {
     marginVertical: 10
