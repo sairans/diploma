@@ -24,7 +24,7 @@ export default function LoginScreen({ navigation }) {
 
     try {
       const response = await axios.post(
-        'http://172.20.10.5:5001/api/users/login',
+        'http://10.202.4.44:5001/api/users/login',
         {
           email,
           password
@@ -41,13 +41,11 @@ export default function LoginScreen({ navigation }) {
   };
   return (
     <View style={styles.container}>
-      {/* Логотип */}
       <Image source={require('../../assets/favicon.png')} style={styles.logo} />
 
       <Text style={styles.title}>SIGN IN</Text>
       <Text style={styles.subtitle}>Enter your email and password</Text>
 
-      {/* Поле ввода телефона */}
       <View style={styles.inputContainer}>
         <Text style={styles.flag}>✉️</Text>
         <TextInput
@@ -60,7 +58,6 @@ export default function LoginScreen({ navigation }) {
         />
       </View>
 
-      {/* Поле ввода пароля */}
       <View style={styles.inputContainer}>
         <TextInput
           style={styles.input}
@@ -87,12 +84,10 @@ export default function LoginScreen({ navigation }) {
         <Text style={styles.link}>User Agreement</Text>.
       </Text>
 
-      {/* Кнопка входа */}
       <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
         <Text style={styles.loginText}>Sign in</Text>
       </TouchableOpacity>
 
-      {/* Регистрация */}
       <Text style={styles.registerText}>
         No account yet?{' '}
         <Text

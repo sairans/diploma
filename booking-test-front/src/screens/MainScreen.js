@@ -57,7 +57,7 @@ export default function MainScreen() {
   useEffect(() => {
     const fetchGrounds = async () => {
       try {
-        const res = await axios.get('http://172.20.10.5:5001/api/grounds');
+        const res = await axios.get('http://10.202.4.44:5001/api/grounds');
         setGrounds(res.data.grounds);
       } catch (error) {
         console.error('Ошибка загрузки данных:', error);
@@ -69,7 +69,6 @@ export default function MainScreen() {
     fetchGrounds();
   }, []);
 
-  // PanResponder for swipe up/down on panel
   const panResponder = PanResponder.create({
     onMoveShouldSetPanResponder: (_, gestureState) => {
       return Math.abs(gestureState.dy) > 10;
@@ -273,7 +272,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 24,
     paddingHorizontal: 20,
     paddingTop: 20,
-    paddingBottom: 34, // Added padding to account for home indicator
+    paddingBottom: 34,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,

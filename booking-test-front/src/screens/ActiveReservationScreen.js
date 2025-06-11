@@ -29,7 +29,7 @@ export default function ActiveReservationsScreen() {
           setLoading(true);
           const token = await AsyncStorage.getItem('token');
           const response = await fetch(
-            `http://172.20.10.5:5001/api/bookings/my`,
+            `http://10.202.4.44:5001/api/bookings/my`,
             {
               headers: { Authorization: `Bearer ${token}` }
             }
@@ -62,7 +62,7 @@ export default function ActiveReservationsScreen() {
           onPress: async () => {
             try {
               const token = await AsyncStorage.getItem('token');
-              await axios.delete(`http://172.20.10.5:5001/api/bookings/${id}`, {
+              await axios.delete(`http://10.202.4.44:5001/api/bookings/${id}`, {
                 headers: { Authorization: `Bearer ${token}` }
               });
               setReservations((prev) => prev.filter((r) => r._id !== id));

@@ -14,17 +14,14 @@ export default function AboutApp() {
   const navigation = useNavigation();
 
   const handleShare = () => {
-    // Implement share functionality
     Alert.alert('Share', 'Share the app with friends');
   };
 
   const handleRate = () => {
-    // Implement rate functionality
     Linking.openURL('market://details?id=com.alan.sports');
   };
 
   const handleWebsite = () => {
-    // Open website
     Linking.openURL('https://alan-sports.com');
   };
 

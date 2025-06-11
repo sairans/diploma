@@ -24,7 +24,7 @@ export default function ForgotPasswordScreen() {
 
     try {
       setLoading(true);
-      await axios.post('http://172.20.10.5:5001/api/users/forgot-password', {
+      await axios.post('http://10.202.4.44:5001/api/users/forgot-password', {
         email
       });
       Alert.alert('Успех', 'Инструкции отправлены на ваш email');

@@ -73,7 +73,7 @@ export default function Dashboard() {
       start: '08:00',
       end: '22:00'
     },
-    availableWeekdays: [0, 1, 2, 3, 4, 5, 6], // Sunday=0 to Saturday=6
+    availableWeekdays: [0, 1, 2, 3, 4, 5, 6],
     pricePerHour: '',
     available: true,
     fields: [],
@@ -102,14 +102,13 @@ export default function Dashboard() {
     { label: 'Saturday', value: 6 }
   ];
 
-  // Cloudinary configuration
   const CLOUD_NAME = 'dnpym2yjn';
   const UPLOAD_PRESET = 'mobile_upload';
 
   const fetchData = async () => {
     try {
       const token = await AsyncStorage.getItem('token');
-      const userRes = await axios.get('http://172.20.10.5:5001/api/users/me', {
+      const userRes = await axios.get('http://10.202.4.44:5001/api/users/me', {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -117,7 +116,7 @@ export default function Dashboard() {
       setUserId(userId);
 
       const resGrounds = await axios.get(
-        `http://172.20.10.5:5001/api/grounds/my/${userId}`,
+        `http://10.202.4.44:5001/api/grounds/my/${userId}`,
         {
           headers: { Authorization: `Bearer ${token}` }
         }
@@ -127,7 +126,7 @@ export default function Dashboard() {
       if (resGrounds.data.grounds && resGrounds.data.grounds.length > 0) {
         const groundId = resGrounds.data.grounds[0]._id;
         resBookings = await axios.get(
-          `http://172.20.10.5:5001/api/bookings/ground/${groundId}`,
+          `http://10.202.4.44:5001/api/bookings/ground/${groundId}`,
           {
             headers: { Authorization: `Bearer ${token}` }
           }
@@ -214,7 +213,6 @@ export default function Dashboard() {
     try {
       setProcessing(true);
 
-      // Validate required fields
       if (
         !form.name ||
         !form.address ||
@@ -241,13 +239,13 @@ export default function Dashboard() {
         ...form,
         location: {
           type: 'Point',
-          coordinates: [lng, lat] // GeoJSON uses [longitude, latitude]
+          coordinates: [lng, lat]
         },
         pricePerHour: parseInt(form.pricePerHour),
         fields: form.fields.map((field, index) => ({
           ...field,
           number: index + 1,
-          available: field.available !== false // Ensure boolean
+          available: field.available !== false
         })),
         availableWeekdays: form.availableWeekdays.sort((a, b) => a - b)
       };
@@ -260,7 +258,7 @@ export default function Dashboard() {
         const { _id, __v, createdAt, updatedAt, ...cleanData } = groundData;
         const changedFields = getChangedFields(originalData, groundData);
         await axios.put(
-          `http://172.20.10.5:5001/api/grounds/${selectedGround._id}`,
+          `http://10.202.4.44:5001/api/grounds/${selectedGround._id}`,
           changedFields,
           {
             headers: {
@@ -271,7 +269,7 @@ export default function Dashboard() {
         Alert.alert('Success', 'Ground updated successfully!');
       } else {
         // Create new ground
-        await axios.post('http://172.20.10.5:5001/api/grounds', groundData, {
+        await axios.post('http://10.202.4.44:5001/api/grounds', groundData, {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -309,7 +307,7 @@ export default function Dashboard() {
               setProcessing(true);
               const token = await AsyncStorage.getItem('token');
               await axios.delete(
-                `http://172.20.10.5:5001/api/grounds/${groundId}`,
+                `http://10.202.4.44:5001/api/grounds/${groundId}`,
                 {
                   headers: {
                     Authorization: `Bearer ${token}`
