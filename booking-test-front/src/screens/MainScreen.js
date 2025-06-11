@@ -9,7 +9,8 @@ import {
   Animated,
   TextInput,
   ActivityIndicator,
-  PanResponder
+  PanResponder,
+  BackHandler
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import MapView, { Marker } from 'react-native-maps';
@@ -24,6 +25,23 @@ export default function MainScreen() {
   const [heightAnim] = useState(new Animated.Value(150));
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const parent = navigation.getParent();
+      parent?.setOptions({ gestureEnabled: false });
+
+      const backHandler = BackHandler.addEventListener(
+        'hardwareBackPress',
+        () => true
+      );
+
+      return () => {
+        parent?.setOptions({ gestureEnabled: true });
+        backHandler.remove();
+      };
+    }, [navigation])
+  );
 
   // useFocusEffect(
   //   React.useCallback(() => {

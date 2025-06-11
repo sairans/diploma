@@ -18,12 +18,17 @@ import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export default function ReservationPage() {
+export default function EditReservationPage() {
   const route = useRoute();
   const navigation = useNavigation();
-  const { groundId, fields } = route.params;
+  const { groundId, fields, bookingId } = route.params;
 
-  const [fieldNumber, setFieldNumber] = useState(fields[0]?.number || '');
+  const [fieldNumber, setFieldNumber] = useState(() => {
+    if (Array.isArray(fields) && fields.length > 0) {
+      return fields[0].number || '';
+    }
+    return '';
+  });
   const [date, setDate] = useState('');
   const [timeslot, setTimeslot] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
@@ -33,6 +38,33 @@ export default function ReservationPage() {
   const [availableSlots, setAvailableSlots] = useState([]);
   const [pricePerHour, setPricePerHour] = useState(0);
   const [paymentMethod, setPaymentMethod] = useState('');
+
+  useEffect(() => {
+    const fetchBooking = async () => {
+      try {
+        if (!bookingId) return;
+        const token = await AsyncStorage.getItem('token');
+        const response = await axios.get(
+          'http://172.20.10.5:5001/api/bookings/my',
+          {
+            headers: { Authorization: `Bearer ${token}` }
+          }
+        );
+        const booking = response.data.bookings.find((b) => b._id === bookingId);
+        if (!booking) {
+          console.warn('Бронирование не найдено по ID');
+          return;
+        }
+        setFieldNumber(booking.fieldNumber);
+        setDate(booking.date);
+        setSelectedSlots(booking.timeSlot);
+        setPaymentMethod(booking.paymentMethod);
+      } catch (err) {
+        console.error('Ошибка при загрузке данных брони:', err);
+      }
+    };
+    fetchBooking();
+  }, [bookingId]);
 
   const today = new Date().toISOString().split('T')[0];
   const isPastTime = (slot) => {
@@ -125,8 +157,8 @@ export default function ReservationPage() {
     try {
       const token = await AsyncStorage.getItem('token');
 
-      await axios.post(
-        'http://172.20.10.5:5001/api/bookings',
+      await axios.put(
+        `http://172.20.10.5:5001/api/bookings/${bookingId}`,
         {
           ground: groundId,
           fieldNumber: fieldNumber,
@@ -135,9 +167,7 @@ export default function ReservationPage() {
           paymentMethod: paymentMethod
         },
         {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
+          headers: { Authorization: `Bearer ${token}` }
         }
       );
 
@@ -169,7 +199,7 @@ export default function ReservationPage() {
         >
           <Ionicons name="arrow-back" size={24} color="black" />
         </TouchableOpacity>
-        <Text style={styles.title}>Reservation</Text>
+        <Text style={styles.title}>Edit reservation</Text>
       </View>
 
       <View style={styles.steps}>
@@ -232,7 +262,9 @@ export default function ReservationPage() {
               .concat(occupiedSlots || [])
               .map((slot, index) => {
                 const disabled =
-                  occupiedSlots.includes(slot) || isPastTime(slot);
+                  (occupiedSlots.includes(slot) &&
+                    !selectedSlots.includes(slot)) ||
+                  isPastTime(slot);
                 const isSelected = selectedSlots.includes(slot);
 
                 return (
@@ -327,7 +359,7 @@ export default function ReservationPage() {
           </Text>
 
           <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-            <Text style={styles.submitButtonText}>Make reservation</Text>
+            <Text style={styles.submitButtonText}>Edit reservation</Text>
           </TouchableOpacity>
         </View>
       )}

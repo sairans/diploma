@@ -78,8 +78,12 @@ export default function ActiveReservationsScreen() {
 
   const handleEdit = (item) => {
     navigation.navigate('EditReservationPage', {
-      bookingId: item._id
+      bookingId: item._id,
+      groundId: item.ground._id,
+      fields: item.ground.fields
     });
+    console.log('Booking ID:', item._id);
+    console.log('FIELDS:', item.ground.fields);
   };
 
   const today = new Date().toISOString().split('T')[0];
