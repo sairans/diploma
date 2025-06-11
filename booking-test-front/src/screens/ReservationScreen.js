@@ -178,7 +178,7 @@ export default function ReservationPage() {
             <Text style={[styles.stepText, step === i && styles.activeStep]}>
               {label}
             </Text>
-            {i < 2 && <Text style={styles.stepText}>{'>'}</Text>}
+            {i < 2 && <Text style={styles.stepText}> </Text>}
           </View>
         ))}
       </View>

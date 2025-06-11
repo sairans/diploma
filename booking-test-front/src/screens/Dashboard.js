@@ -883,7 +883,8 @@ export default function Dashboard() {
                       const updated = [...form.images];
                       updated.splice(index, 1);
                       setForm({
-                        ...form
+                        ...form,
+                        images: updated
                       });
                     }}
                   >
@@ -1379,19 +1380,23 @@ const styles = StyleSheet.create({
   fieldsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginTop: 5
+    marginTop: 8,
+    marginHorizontal: -4 // Negative margin to offset badge margins
   },
   fieldBadge: {
-    backgroundColor: '#e0e7ff',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 15,
-    marginRight: 8,
-    marginBottom: 8
+    backgroundColor: '#f1f5f9',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    marginHorizontal: 4,
+    marginVertical: 3,
+    borderWidth: 1,
+    borderColor: '#e2e8f0'
   },
   fieldText: {
-    color: '#1d4ed8',
-    fontSize: 14
+    color: '#475569',
+    fontSize: 14,
+    fontWeight: '500'
   },
   imageScroll: {
     marginVertical: 10

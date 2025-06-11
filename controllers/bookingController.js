@@ -93,13 +93,20 @@ exports.createBooking = async (req, res) => {
       });
     }
 
+    // Calculate total price
+    const duration = timeSlot.length;
+    const totalPrice = groundData.pricePerHour
+      ? groundData.pricePerHour * duration
+      : 0;
+
     // 5. Создание бронирования
     const booking = new Booking({
       user: req.user._id,
       ground,
       fieldNumber,
       date: bookingDate,
-      timeSlot
+      timeSlot,
+      totalPrice
     });
 
     await booking.save();
@@ -112,6 +119,7 @@ exports.createBooking = async (req, res) => {
         <p>Площадка: ${groundData.name}</p>
         <p>Дата: ${bookingDate.toLocaleDateString('ru-RU')}</p>
         <p>Время: ${timeSlot.join(', ')}</p>
+        <p>Стоимость: ${totalPrice.toLocaleString()} тг</p>
       `;
 
       await sendEmail({

@@ -149,7 +149,7 @@ export default function ActiveReservationsScreen() {
               <Text style={styles.field}>⚽ {item.ground?.name || '—'}</Text>
               <Text style={styles.detail}>Date: {item.date}</Text>
               <Text style={styles.detail}>Time: {item.timeSlot?.[0]}</Text>
-              <Text style={styles.detail}>₸ 50,000 тг</Text>
+              <Text style={styles.detail}>₸ {item.totalPrice || '—'} тг</Text>
               {activeTab === 'active' && (
                 <View style={styles.buttonRow}>
                   <TouchableOpacity
