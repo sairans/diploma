@@ -88,7 +88,11 @@ export default function EditReservationPage() {
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
-        setOccupiedSlots(occupiedRes.data?.occupiedSlots || []);
+        const rawOccupied = occupiedRes.data?.occupiedSlots || [];
+        const filteredOccupied = rawOccupied.filter(
+          (slot) => !selectedSlots.includes(slot)
+        );
+        setOccupiedSlots(filteredOccupied);
         setAvailableSlots(availableRes.data?.availableSlots || []);
       } catch (e) {
         setOccupiedSlots([]);
@@ -114,12 +118,10 @@ export default function EditReservationPage() {
   }, [groundId]);
 
   const handleSlotSelection = (slot) => {
-    if (selectedSlots.length < 5) {
-      if (selectedSlots.includes(slot)) {
-        setSelectedSlots(selectedSlots.filter((item) => item !== slot));
-      } else {
-        setSelectedSlots([...selectedSlots, slot]);
-      }
+    if (selectedSlots.includes(slot)) {
+      setSelectedSlots(selectedSlots.filter((item) => item !== slot));
+    } else if (selectedSlots.length < 5) {
+      setSelectedSlots([...selectedSlots, slot]);
     }
   };
 

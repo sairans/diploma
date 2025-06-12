@@ -18,7 +18,7 @@ exports.searchGroundsByName = async (req, res) => {
         .status(400)
         .json({ message: 'Параметр name обязателен для поиска' });
     }
-    const regex = new RegExp(query, 'i'); // регистронезависимый поиск
+    const regex = new RegExp(query, 'i');
     const results = await Ground.find({ name: regex });
     res.json({ results });
   } catch (err) {

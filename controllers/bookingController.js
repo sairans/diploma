@@ -271,7 +271,6 @@ exports.getOccupiedSlots = async (req, res) => {
   try {
     const { groundId, date, fieldNumber } = req.query;
     if (!groundId || !date || !fieldNumber) {
-
       return res
         .status(400)
         .json({ message: 'groundId, date и fieldNumber обязательны' });
@@ -281,12 +280,11 @@ exports.getOccupiedSlots = async (req, res) => {
       date,
       fieldNumber
     });
-    const timeSlots = bookings.flatMap(
-      (b) =>
-        b.timeSlot.map((slot) => ({
-          slot: slot.trim(),
-          fieldNumber: b.fieldNumber
-        }))
+    const timeSlots = bookings.flatMap((b) =>
+      b.timeSlot.map((slot) => ({
+        slot: slot.trim(),
+        fieldNumber: b.fieldNumber
+      }))
     );
     res.json({ occupiedSlots: timeSlots });
   } catch (err) {

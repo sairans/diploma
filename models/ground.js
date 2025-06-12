@@ -44,7 +44,7 @@ const groundSchema = new mongoose.Schema(
     },
     availableWeekdays: {
       type: [Number],
-      default: [0, 1, 2, 3, 4, 5, 6] // Пн–Пт
+      default: [0, 1, 2, 3, 4, 5, 6]
     },
     images: {
       type: [String],

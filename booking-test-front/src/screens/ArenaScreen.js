@@ -12,6 +12,7 @@ import {
   TextInput
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Linking } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRoute, useNavigation } from '@react-navigation/native';
 
@@ -99,9 +100,22 @@ export default function ArenaDetailsScreen() {
             <TouchableOpacity style={styles.controlButton}>
               <Ionicons name="share-outline" size={20} color="white" />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.controlButton}>
-              <Ionicons name="heart-outline" size={20} color="white" />
-            </TouchableOpacity>
+            {/* Like button */}
+            {(() => {
+              const [liked, setLiked] = React.useState(false);
+              return (
+                <TouchableOpacity
+                  style={styles.controlButton}
+                  onPress={() => setLiked(!liked)}
+                >
+                  <Ionicons
+                    name={liked ? 'heart' : 'heart-outline'}
+                    size={20}
+                    color={liked ? 'red' : 'white'}
+                  />
+                </TouchableOpacity>
+              );
+            })()}
           </View>
         </View>
       </View>
@@ -142,10 +156,24 @@ export default function ArenaDetailsScreen() {
 
           {/* Action Buttons */}
           <View style={styles.actionButtons}>
-            <TouchableOpacity style={styles.actionButton}>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => {
+                if (venue.contacts?.instagram) {
+                  Linking.openURL(venue.contacts.instagram);
+                }
+              }}
+            >
               <Ionicons name="logo-instagram" size={20} color="#E4405F" />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton}>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => {
+                if (venue.contacts?.phone) {
+                  Linking.openURL(`tel:${venue.contacts.phone}`);
+                }
+              }}
+            >
               <Ionicons name="call" size={20} color="#007AFF" />
             </TouchableOpacity>
             <TouchableOpacity style={styles.actionButton}>
@@ -200,19 +228,27 @@ export default function ArenaDetailsScreen() {
                 <View style={styles.fieldDetailsGrid}>
                   <View style={styles.fieldDetail}>
                     <Text style={styles.fieldDetailLabel}>Size</Text>
-                    <Text style={styles.fieldDetailValue}>15x25</Text>
+                    <Text style={styles.fieldDetailValue}>
+                      {venue.info?.size || '—'}
+                    </Text>
                   </View>
                   <View style={styles.fieldDetail}>
                     <Text style={styles.fieldDetailLabel}>Surface</Text>
-                    <Text style={styles.fieldDetailValue}>Grass</Text>
+                    <Text style={styles.fieldDetailValue}>
+                      {venue.info?.cover || '—'}
+                    </Text>
                   </View>
                   <View style={styles.fieldDetail}>
                     <Text style={styles.fieldDetailLabel}>Fields</Text>
-                    <Text style={styles.fieldDetailValue}>3</Text>
+                    <Text style={styles.fieldDetailValue}>
+                      {venue.fields?.length || 0}
+                    </Text>
                   </View>
                   <View style={styles.fieldDetail}>
                     <Text style={styles.fieldDetailLabel}>Balls</Text>
-                    <Text style={styles.fieldDetailValue}>Paid</Text>
+                    <Text style={styles.fieldDetailValue}>
+                      {venue.info?.balls || '—'}
+                    </Text>
                   </View>
                 </View>
               </View>
