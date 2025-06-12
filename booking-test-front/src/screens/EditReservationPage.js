@@ -45,7 +45,7 @@ export default function EditReservationPage() {
         if (!bookingId) return;
         const token = await AsyncStorage.getItem('token');
         const response = await axios.get(
-          'http://10.202.4.44:5001/api/bookings/my',
+          'http://10.201.0.139:5001/api/bookings/my',
           {
             headers: { Authorization: `Bearer ${token}` }
           }
@@ -80,11 +80,11 @@ export default function EditReservationPage() {
       try {
         const token = await AsyncStorage.getItem('token');
         const occupiedRes = await axios.get(
-          `http://10.202.4.44:5001/api/bookings/occupied?groundId=${groundId}&date=${date}&fieldNumber=${fieldNumber}`,
+          `http://10.201.0.139:5001/api/bookings/occupied?groundId=${groundId}&date=${date}&fieldNumber=${fieldNumber}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         const availableRes = await axios.get(
-          `http://10.202.4.44:5001/api/bookings/available?groundId=${groundId}&date=${date}&fieldNumber=${fieldNumber}`,
+          `http://10.201.0.139:5001/api/bookings/available?groundId=${groundId}&date=${date}&fieldNumber=${fieldNumber}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
@@ -106,7 +106,7 @@ export default function EditReservationPage() {
     const fetchGroundData = async () => {
       try {
         const res = await axios.get(
-          `http://10.202.4.44:5001/api/grounds/${groundId}`
+          `http://10.201.0.139:5001/api/grounds/${groundId}`
         );
         setPricePerHour(res.data.pricePerHour);
       } catch (err) {
@@ -160,7 +160,7 @@ export default function EditReservationPage() {
       const token = await AsyncStorage.getItem('token');
 
       await axios.put(
-        `http://10.202.4.44:5001/api/bookings/${bookingId}`,
+        `http://10.201.0.139:5001/api/bookings/${bookingId}`,
         {
           ground: groundId,
           fieldNumber: fieldNumber,

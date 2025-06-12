@@ -35,7 +35,7 @@ export default function ChangePassword() {
     try {
       const token = await AsyncStorage.getItem('token');
       const response = await axios.put(
-        'http://10.202.4.44:5001/api/users/password',
+        'http://10.201.0.139:5001/api/users/password',
         {
           currentPassword,
           newPassword

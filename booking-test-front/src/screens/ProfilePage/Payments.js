@@ -23,7 +23,7 @@ export default function Payments() {
     try {
       const token = await AsyncStorage.getItem('token');
       const response = await axios.get(
-        'http://10.202.4.44:5001/api/users/payment',
+        'http://10.201.0.139:5001/api/users/payment',
         {
           headers: {
             Authorization: `Bearer ${token}`
@@ -48,7 +48,7 @@ export default function Payments() {
         brand: 'Visa'
       };
 
-      await axios.put('http://10.202.4.44:5001/api/users/payment', newCard, {
+      await axios.put('http://10.201.0.139:5001/api/users/payment', newCard, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -73,7 +73,7 @@ export default function Payments() {
           try {
             const token = await AsyncStorage.getItem('token');
             await axios.delete(
-              `http://10.202.4.44:5001/api/users/payment/${id}`,
+              `http://10.201.0.139:5001/api/users/payment/${id}`,
               {
                 headers: {
                   Authorization: `Bearer ${token}`

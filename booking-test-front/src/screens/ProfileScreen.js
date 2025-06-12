@@ -31,7 +31,7 @@ export default function ProfileScreen({ navigation }) {
         try {
           const token = await AsyncStorage.getItem('token');
           const response = await axios.get(
-            'http://10.202.4.44:5001/api/users/me',
+            'http://10.201.0.139:5001/api/users/me',
             {
               headers: { Authorization: `Bearer ${token}` }
             }

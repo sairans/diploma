@@ -24,7 +24,7 @@ export default function LoginScreen({ navigation }) {
 
     try {
       const response = await axios.post(
-        'http://10.202.4.44:5001/api/users/login',
+        'http://10.201.0.139:5001/api/users/login',
         {
           email,
           password

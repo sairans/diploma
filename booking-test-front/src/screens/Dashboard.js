@@ -108,7 +108,7 @@ export default function Dashboard() {
   const fetchData = async () => {
     try {
       const token = await AsyncStorage.getItem('token');
-      const userRes = await axios.get('http://10.202.4.44:5001/api/users/me', {
+      const userRes = await axios.get('http://10.201.0.139:5001/api/users/me', {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -116,7 +116,7 @@ export default function Dashboard() {
       setUserId(userId);
 
       const resGrounds = await axios.get(
-        `http://10.202.4.44:5001/api/grounds/my/${userId}`,
+        `http://10.201.0.139:5001/api/grounds/my/${userId}`,
         {
           headers: { Authorization: `Bearer ${token}` }
         }
@@ -126,7 +126,7 @@ export default function Dashboard() {
       if (resGrounds.data.grounds && resGrounds.data.grounds.length > 0) {
         const groundId = resGrounds.data.grounds[0]._id;
         resBookings = await axios.get(
-          `http://10.202.4.44:5001/api/bookings/ground/${groundId}`,
+          `http://10.201.0.139:5001/api/bookings/ground/${groundId}`,
           {
             headers: { Authorization: `Bearer ${token}` }
           }
@@ -258,7 +258,7 @@ export default function Dashboard() {
         const { _id, __v, createdAt, updatedAt, ...cleanData } = groundData;
         const changedFields = getChangedFields(originalData, groundData);
         await axios.put(
-          `http://10.202.4.44:5001/api/grounds/${selectedGround._id}`,
+          `http://10.201.0.139:5001/api/grounds/${selectedGround._id}`,
           changedFields,
           {
             headers: {
@@ -269,7 +269,7 @@ export default function Dashboard() {
         Alert.alert('Success', 'Ground updated successfully!');
       } else {
         // Create new ground
-        await axios.post('http://10.202.4.44:5001/api/grounds', groundData, {
+        await axios.post('http://10.201.0.139:5001/api/grounds', groundData, {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -307,7 +307,7 @@ export default function Dashboard() {
               setProcessing(true);
               const token = await AsyncStorage.getItem('token');
               await axios.delete(
-                `http://10.202.4.44:5001/api/grounds/${groundId}`,
+                `http://10.201.0.139:5001/api/grounds/${groundId}`,
                 {
                   headers: {
                     Authorization: `Bearer ${token}`
